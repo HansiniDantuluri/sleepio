@@ -30,8 +30,9 @@ function isNativeIOS(): boolean {
 async function loadAppUsage(): Promise<any | null> {
   try {
     // Optional dep — only present in native Android builds.
+    const specifier = "@capacitor-community/app-usage";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mod: any = await import(/* @vite-ignore */ "@capacitor-community/app-usage").catch(() => null);
+    const mod: any = await import(/* @vite-ignore */ specifier).catch(() => null);
     return mod?.AppUsage ?? null;
   } catch {
     return null;
