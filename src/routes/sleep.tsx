@@ -33,7 +33,7 @@ function SleepTrackingPage() {
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
-  const [now, setNow] = useState<Date>(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -109,7 +109,7 @@ function SleepTrackingPage() {
       <div className="relative mx-auto flex min-h-dvh max-w-xl flex-col items-center px-6 pb-12 pt-16">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">Sleep mode</p>
         <h1 className="mt-2 font-display text-6xl font-semibold tabular-nums tracking-tight">
-          {fmtClock(now)}
+          {now ? fmtClock(now) : "--:--"}
         </h1>
         {startedAt && (
           <p className="mt-2 text-sm text-white/70">Sleep started at {fmtClock(startedAt)}</p>
@@ -142,16 +142,19 @@ function SleepTrackingPage() {
 }
 
 function Stars() {
-  const stars = useMemo(
-    () =>
+  const [stars, setStars] = useState<
+    { top: number; left: number; size: number; delay: number }[]
+  >([]);
+  useEffect(() => {
+    setStars(
       Array.from({ length: 40 }).map(() => ({
         top: Math.random() * 100,
         left: Math.random() * 100,
         size: Math.random() * 2 + 1,
         delay: Math.random() * 4,
       })),
-    [],
-  );
+    );
+  }, []);
   return (
     <div className="pointer-events-none absolute inset-0">
       {stars.map((s, i) => (
