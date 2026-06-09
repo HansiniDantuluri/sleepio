@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WindDownRouteImport } from './routes/wind-down'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SleepRouteImport } from './routes/sleep'
 import { Route as PlanRouteImport } from './routes/plan'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SleepSummaryRouteImport } from './routes/sleep_.summary'
 import { Route as SleepQualityRouteImport } from './routes/sleep_.quality'
 
+const WindDownRoute = WindDownRouteImport.update({
+  id: '/wind-down',
+  path: '/wind-down',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep_/quality': typeof SleepQualityRoute
   '/sleep_/summary': typeof SleepSummaryRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep_/quality'
     | '/sleep_/summary'
   fileRoutesById: FileRoutesById
@@ -156,12 +168,20 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   SleepRoute: typeof SleepRoute
   StatsRoute: typeof StatsRoute
+  WindDownRoute: typeof WindDownRoute
   SleepQualityRoute: typeof SleepQualityRoute
   SleepSummaryRoute: typeof SleepSummaryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wind-down': {
+      id: '/wind-down'
+      path: '/wind-down'
+      fullPath: '/wind-down'
+      preLoaderRoute: typeof WindDownRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
@@ -244,9 +264,20 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   SleepRoute: SleepRoute,
   StatsRoute: StatsRoute,
+  WindDownRoute: WindDownRoute,
   SleepQualityRoute: SleepQualityRoute,
   SleepSummaryRoute: SleepSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
