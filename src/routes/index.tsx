@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AppShell } from "../components/app-shell";
 import { getCoachMessage } from "../lib/api/coach.functions";
 import { getActiveSchedule, saveActiveSchedule } from "../lib/api/schedule.functions";
+import { getActiveStudyPlan } from "../lib/api/academics.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,6 +55,9 @@ function Index() {
   const [changedKeys, setChangedKeys] = useState<Set<string>>(new Set());
   const [overflowWarning, setOverflowWarning] = useState(false);
   const [scheduleVersion, setScheduleVersion] = useState(0);
+  const [studyBlocks, setStudyBlocks] = useState<{ subject: string; minutes: number; focus: string }[]>([]);
+  const fetchStudyPlan = useServerFn(getActiveStudyPlan);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -79,6 +83,25 @@ function Index() {
       cancelled = true;
     };
   }, [fetchActive]);
+
+  // Load today's study blocks from active plan
+  useEffect(() => {
+    let cancelled = false;
+    fetchStudyPlan()
+      .then((r) => {
+        if (cancelled || !r.plan) return;
+        const todayIso = new Date().toISOString().slice(0, 10);
+        const blocks: { subject: string; minutes: number; focus: string }[] = [];
+        for (const w of r.plan.weeks ?? []) {
+          for (const d of w.days ?? []) {
+            if (d.date === todayIso) blocks.push(...(d.blocks ?? []));
+          }
+        }
+        setStudyBlocks(blocks);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [fetchStudyPlan]);
 
   useEffect(() => {
     if (!now) return;
