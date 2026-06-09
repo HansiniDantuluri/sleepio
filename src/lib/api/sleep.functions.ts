@@ -108,23 +108,34 @@ export const getSleepNarrative = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: recent } = await supabase
+    const { data: session } = await supabase
       .from("sleep_sessions")
-      .select("start_time, end_time, quality_score, mood_score")
+      .select("start_time, end_time, target_minutes, mood_score")
+      .eq("id", data.id)
       .eq("user_id", userId)
-      .not("end_time", "is", null)
-      .order("end_time", { ascending: false })
-      .limit(7);
+      .maybeSingle();
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { narrative: null as string | null };
+    const actualMin =
+      session?.start_time && session?.end_time
+        ? Math.max(
+            0,
+            Math.round(
+              (new Date(session.end_time).getTime() -
+                new Date(session.start_time).getTime()) /
+                60000,
+            ),
+          )
+        : 0;
+    const target = session?.target_minutes ?? 480;
+    const mood = session?.mood_score ?? 3;
     try {
       const gateway = createLovableAiGatewayProvider(key);
       const model = gateway("google/gemini-3-flash-preview");
       const { text } = await generateText({
         model,
-        system:
-          "You are a warm sleep coach. Write exactly 2 short sentences (under 40 words total) about the student's recent sleep pattern. Encouraging, no medical claims.",
-        prompt: `Last 7 sessions JSON: ${JSON.stringify(recent ?? [])}. Session id: ${data.id}.`,
+        system: "You are a warm sleep coach for a teenager. Never preachy.",
+        prompt: `The student slept ${actualMin} minutes. Their target is ${target} minutes. Their mood on wake was ${mood}/5. Based on this, write exactly 3 short sentences: 1) A simple observation about their sleep using a relatable comparison (e.g. 'That's like missing an entire REM cycle'). 2) One specific science fact about what happens to the brain or body at this sleep level, explained simply for a teenager. 3) One actionable tip for tonight. Keep it warm, never preachy.`,
       });
       const narrative = text.trim();
       await supabase.from("sleep_sessions").update({ narrative }).eq("id", data.id).eq("user_id", userId);
