@@ -17,6 +17,7 @@ import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SleepQualityRouteImport } from './routes/sleep.quality'
 
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
@@ -58,6 +59,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SleepQualityRoute = SleepQualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
+  getParentRoute: () => SleepRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,8 +72,9 @@ export interface FileRoutesByFullPath {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
+  '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
+  '/sleep/quality': typeof SleepQualityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,8 +83,9 @@ export interface FileRoutesByTo {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
+  '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
+  '/sleep/quality': typeof SleepQualityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,8 +95,9 @@ export interface FileRoutesById {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
+  '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
+  '/sleep/quality': typeof SleepQualityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/sleep/quality'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/sleep/quality'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/sleep/quality'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -130,7 +142,7 @@ export interface RootRouteChildren {
   FocusRoute: typeof FocusRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
-  SleepRoute: typeof SleepRoute
+  SleepRoute: typeof SleepRouteWithChildren
   StatsRoute: typeof StatsRoute
 }
 
@@ -192,8 +204,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sleep/quality': {
+      id: '/sleep/quality'
+      path: '/quality'
+      fullPath: '/sleep/quality'
+      preLoaderRoute: typeof SleepQualityRouteImport
+      parentRoute: typeof SleepRoute
+    }
   }
 }
+
+interface SleepRouteChildren {
+  SleepQualityRoute: typeof SleepQualityRoute
+}
+
+const SleepRouteChildren: SleepRouteChildren = {
+  SleepQualityRoute: SleepQualityRoute,
+}
+
+const SleepRouteWithChildren = SleepRoute._addFileChildren(SleepRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -202,9 +231,19 @@ const rootRouteChildren: RootRouteChildren = {
   FocusRoute: FocusRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
-  SleepRoute: SleepRoute,
+  SleepRoute: SleepRouteWithChildren,
   StatsRoute: StatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
