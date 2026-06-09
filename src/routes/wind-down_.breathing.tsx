@@ -10,12 +10,12 @@ export const Route = createFileRoute("/wind-down_/breathing")({
   component: BreathingPage,
 });
 
-type Phase = "inhale" | "hold" | "exhale";
+type Phase = "inhale" | "hold" | "exhale" | "hold2";
 
 const PATTERN_PRESETS = {
-  "4-7-8": { inhale: 4, hold: 7, exhale: 8 },
-  "Box (4-4-4)": { inhale: 4, hold: 4, exhale: 4 },
-  "Calm (4-2-6)": { inhale: 4, hold: 2, exhale: 6 },
+  "4-7-8": { inhale: 4, hold: 7, exhale: 8, hold2: 0 },
+  "Box (4-4-4)": { inhale: 4, hold: 4, exhale: 4, hold2: 4 },
+  "Calm (4-2-6)": { inhale: 4, hold: 2, exhale: 6, hold2: 0 },
 } as const;
 
 const TARGET_CYCLES = 5;
@@ -54,6 +54,10 @@ function BreathingPage() {
             setSecondsLeft(pattern.exhale);
             return "exhale";
           }
+          if (p === "exhale" && pattern.hold2 > 0) {
+            setSecondsLeft(pattern.hold2);
+            return "hold2";
+          }
           setCycle((c) => Math.min(TARGET_CYCLES, c + 1));
           setSecondsLeft(pattern.inhale);
           return "inhale";
@@ -69,10 +73,19 @@ function BreathingPage() {
       ? "oklch(0.7 0.16 240)"
       : phase === "hold"
         ? "oklch(0.6 0.2 290)"
-        : "oklch(0.35 0.13 260)";
-  const scale = phase === "inhale" ? 1.25 : phase === "hold" ? 1.25 : 0.85;
+        : phase === "exhale"
+          ? "oklch(0.35 0.13 260)"
+          : "oklch(0.4 0.15 270)";
+  const scale =
+    phase === "inhale" ? 1.25 : phase === "hold" ? 1.25 : phase === "exhale" ? 0.85 : 0.85;
   const duration =
-    phase === "inhale" ? pattern.inhale : phase === "hold" ? 0.4 : pattern.exhale;
+    phase === "inhale"
+      ? pattern.inhale
+      : phase === "hold"
+        ? pattern.hold
+        : phase === "exhale"
+          ? pattern.exhale
+          : pattern.hold2;
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[oklch(0.18_0.05_270)] via-[oklch(0.12_0.05_270)] to-[oklch(0.06_0.04_270)] text-white">

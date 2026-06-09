@@ -45,13 +45,6 @@ const LENGTHS = [25, 45, 60] as const;
 
 type Phase = "select" | "running" | "complete";
 
-function plantStage(xp: number) {
-  if (xp >= 150) return { emoji: "🌳", label: "Mature tree" };
-  if (xp >= 75) return { emoji: "🍀", label: "Lucky clover" };
-  if (xp >= 25) return { emoji: "🌿", label: "Sapling" };
-  return { emoji: "🌱", label: "Seedling" };
-}
-
 function milestone(pct: number): string | null {
   if (pct >= 1) return "Crushed it! 🏆";
   if (pct >= 0.75) return "Almost done ⚡";
@@ -263,6 +256,7 @@ function FocusPage() {
             progress={progress}
             currentXp={currentXp}
             taskName={taskFromQuery}
+            todayCount={todayCount}
             onToggle={() => setRunning((r) => !r)}
           />
         )}
@@ -311,6 +305,7 @@ function RunningView({
   progress,
   currentXp,
   taskName,
+  todayCount,
   onToggle,
 }: {
   length: number;
@@ -319,11 +314,11 @@ function RunningView({
   progress: number;
   currentXp: number;
   taskName: string;
+  todayCount: number;
   onToggle: () => void;
 }) {
   const R = 120;
   const C = 2 * Math.PI * R;
-  const stage = plantStage(currentXp);
   return (
     <div className="flex w-full flex-col items-center">
       <div className="relative">
@@ -372,17 +367,11 @@ function RunningView({
         </div>
       </div>
 
-      {/* Plant */}
-      <motion.div
-        key={stage.emoji}
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 350, damping: 14 }}
-        className="mt-6 text-5xl"
-        aria-label={stage.label}
-      >
-        {stage.emoji}
-      </motion.div>
+      {/* Sessions today pill */}
+      <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        Sessions today: {todayCount}
+      </div>
 
       <motion.button
         type="button"
