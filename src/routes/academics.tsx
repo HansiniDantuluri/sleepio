@@ -548,7 +548,6 @@ function StudyPlanGrid({
                         p.weeks[wi].days[di].blocks.push(moved);
                         return p;
                       });
-                      toast.success("Study plan updated");
                     } catch {
                       /* ignore */
                     }
