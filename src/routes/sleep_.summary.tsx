@@ -8,7 +8,7 @@ import {
 } from "../lib/api/sleep.functions";
 import { useTheme } from "../components/theme-provider";
 
-export const Route = createFileRoute("/sleep/summary")({
+export const Route = createFileRoute("/sleep_/summary")({
   head: () => ({ meta: [{ title: "Sleep summary — SleepIO" }] }),
   component: SleepSummaryPage,
 });

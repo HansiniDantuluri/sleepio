@@ -17,8 +17,8 @@ import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SleepSummaryRouteImport } from './routes/sleep.summary'
-import { Route as SleepQualityRouteImport } from './routes/sleep.quality'
+import { Route as SleepSummaryRouteImport } from './routes/sleep_.summary'
+import { Route as SleepQualityRouteImport } from './routes/sleep_.quality'
 
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
@@ -61,14 +61,14 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const SleepSummaryRoute = SleepSummaryRouteImport.update({
-  id: '/summary',
-  path: '/summary',
-  getParentRoute: () => SleepRoute,
+  id: '/sleep_/summary',
+  path: '/sleep/summary',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SleepQualityRoute = SleepQualityRouteImport.update({
-  id: '/quality',
-  path: '/quality',
-  getParentRoute: () => SleepRoute,
+  id: '/sleep_/quality',
+  path: '/sleep/quality',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -78,7 +78,7 @@ export interface FileRoutesByFullPath {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRouteWithChildren
+  '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
@@ -90,7 +90,7 @@ export interface FileRoutesByTo {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRouteWithChildren
+  '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
@@ -103,10 +103,10 @@ export interface FileRoutesById {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRouteWithChildren
+  '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
-  '/sleep/quality': typeof SleepQualityRoute
-  '/sleep/summary': typeof SleepSummaryRoute
+  '/sleep_/quality': typeof SleepQualityRoute
+  '/sleep_/summary': typeof SleepSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,8 +143,8 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
-    | '/sleep/quality'
-    | '/sleep/summary'
+    | '/sleep_/quality'
+    | '/sleep_/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -154,8 +154,10 @@ export interface RootRouteChildren {
   FocusRoute: typeof FocusRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
-  SleepRoute: typeof SleepRouteWithChildren
+  SleepRoute: typeof SleepRoute
   StatsRoute: typeof StatsRoute
+  SleepQualityRoute: typeof SleepQualityRoute
+  SleepSummaryRoute: typeof SleepSummaryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -216,34 +218,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sleep/summary': {
-      id: '/sleep/summary'
-      path: '/summary'
+    '/sleep_/summary': {
+      id: '/sleep_/summary'
+      path: '/sleep/summary'
       fullPath: '/sleep/summary'
       preLoaderRoute: typeof SleepSummaryRouteImport
-      parentRoute: typeof SleepRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/sleep/quality': {
-      id: '/sleep/quality'
-      path: '/quality'
+    '/sleep_/quality': {
+      id: '/sleep_/quality'
+      path: '/sleep/quality'
       fullPath: '/sleep/quality'
       preLoaderRoute: typeof SleepQualityRouteImport
-      parentRoute: typeof SleepRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface SleepRouteChildren {
-  SleepQualityRoute: typeof SleepQualityRoute
-  SleepSummaryRoute: typeof SleepSummaryRoute
-}
-
-const SleepRouteChildren: SleepRouteChildren = {
-  SleepQualityRoute: SleepQualityRoute,
-  SleepSummaryRoute: SleepSummaryRoute,
-}
-
-const SleepRouteWithChildren = SleepRoute._addFileChildren(SleepRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -252,9 +242,21 @@ const rootRouteChildren: RootRouteChildren = {
   FocusRoute: FocusRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
-  SleepRoute: SleepRouteWithChildren,
+  SleepRoute: SleepRoute,
   StatsRoute: StatsRoute,
+  SleepQualityRoute: SleepQualityRoute,
+  SleepSummaryRoute: SleepSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
