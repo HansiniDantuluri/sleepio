@@ -14,6 +14,7 @@ import { Route as SleepRouteImport } from './routes/sleep'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as FocusRouteImport } from './routes/focus'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -42,6 +43,11 @@ const FocusRoute = FocusRouteImport.update({
   path: '/focus',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcademicsRoute = AcademicsRouteImport.update({
   id: '/academics',
   path: '/academics',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/auth': typeof AuthRoute
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/auth': typeof AuthRoute
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
+  '/auth': typeof AuthRoute
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/academics'
+    | '/auth'
     | '/focus'
     | '/onboarding'
     | '/plan'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/academics'
+    | '/auth'
     | '/focus'
     | '/onboarding'
     | '/plan'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/academics'
+    | '/auth'
     | '/focus'
     | '/onboarding'
     | '/plan'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademicsRoute: typeof AcademicsRoute
+  AuthRoute: typeof AuthRoute
   FocusRoute: typeof FocusRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FocusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/academics': {
       id: '/academics'
       path: '/academics'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademicsRoute: AcademicsRoute,
+  AuthRoute: AuthRoute,
   FocusRoute: FocusRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
