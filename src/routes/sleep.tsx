@@ -85,7 +85,49 @@ function SleepTrackingPage() {
       }
     };
     document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
+
+    // Capacitor native app-state listener (Android/iOS). The first signal
+    // to fire (visibilitychange or appStateChange→active) wins; subsequent
+    // navigations are guarded by `fired`.
+    let fired = false;
+    let removeNative: (() => void) | null = null;
+    const wrappedVis = async () => {
+      if (fired) return;
+      fired = true;
+      await onVis();
+    };
+    document.removeEventListener("visibilitychange", onVis);
+    document.addEventListener("visibilitychange", wrappedVis);
+
+    (async () => {
+      try {
+        const specifier = "@capacitor/app";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mod: any = await import(/* @vite-ignore */ specifier).catch(() => null);
+        const App = mod?.App;
+        if (!App?.addListener) return;
+        const handle = await App.addListener("appStateChange", async (state: { isActive: boolean }) => {
+          if (state.isActive && !fired) {
+            fired = true;
+            try {
+              await end({ data: { id: sessionId, status: "interrupted" } });
+            } catch {
+              /* ignore */
+            }
+            try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+            navigate({ to: "/sleep/quality" });
+          }
+        });
+        removeNative = () => handle?.remove?.();
+      } catch {
+        /* native plugin not available */
+      }
+    })();
+
+    return () => {
+      document.removeEventListener("visibilitychange", wrappedVis);
+      removeNative?.();
+    };
   }, [sessionId, end, navigate]);
 
   const handleWake = async () => {
