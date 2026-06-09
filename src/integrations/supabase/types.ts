@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      focus_sessions: {
+        Row: {
+          actual_minutes: number
+          created_at: string
+          ended_at: string | null
+          id: string
+          planned_minutes: number
+          started_at: string
+          status: string
+          task_name: string | null
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          actual_minutes?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          planned_minutes: number
+          started_at?: string
+          status?: string
+          task_name?: string | null
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          actual_minutes?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          planned_minutes?: number
+          started_at?: string
+          status?: string
+          task_name?: string | null
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       internal_assessments: {
         Row: {
           created_at: string
