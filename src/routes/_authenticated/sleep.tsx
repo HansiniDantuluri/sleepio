@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "../components/app-shell";
-import { StubPanel } from "../components/stub-panel";
+import { AppShell } from "../../components/app-shell";
+import { StubPanel } from "../../components/stub-panel";
 
 export const Route = createFileRoute("/_authenticated/sleep")({
   head: () => ({
