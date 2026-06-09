@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WindDownMusicRouteImport } from './routes/wind-down_.music'
+import { Route as WindDownBreathingRouteImport } from './routes/wind-down_.breathing'
 import { Route as SleepSummaryRouteImport } from './routes/sleep_.summary'
 import { Route as SleepQualityRouteImport } from './routes/sleep_.quality'
 
@@ -72,6 +73,11 @@ const WindDownMusicRoute = WindDownMusicRouteImport.update({
   path: '/wind-down/music',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WindDownBreathingRoute = WindDownBreathingRouteImport.update({
+  id: '/wind-down_/breathing',
+  path: '/wind-down/breathing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SleepSummaryRoute = SleepSummaryRouteImport.update({
   id: '/sleep_/summary',
   path: '/sleep/summary',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
+  '/wind-down/breathing': typeof WindDownBreathingRoute
   '/wind-down/music': typeof WindDownMusicRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
+  '/wind-down/breathing': typeof WindDownBreathingRoute
   '/wind-down/music': typeof WindDownMusicRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/wind-down': typeof WindDownRoute
   '/sleep_/quality': typeof SleepQualityRoute
   '/sleep_/summary': typeof SleepSummaryRoute
+  '/wind-down_/breathing': typeof WindDownBreathingRoute
   '/wind-down_/music': typeof WindDownMusicRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
+    | '/wind-down/breathing'
     | '/wind-down/music'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
+    | '/wind-down/breathing'
     | '/wind-down/music'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/wind-down'
     | '/sleep_/quality'
     | '/sleep_/summary'
+    | '/wind-down_/breathing'
     | '/wind-down_/music'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   WindDownRoute: typeof WindDownRoute
   SleepQualityRoute: typeof SleepQualityRoute
   SleepSummaryRoute: typeof SleepSummaryRoute
+  WindDownBreathingRoute: typeof WindDownBreathingRoute
   WindDownMusicRoute: typeof WindDownMusicRoute
 }
 
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WindDownMusicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wind-down_/breathing': {
+      id: '/wind-down_/breathing'
+      path: '/wind-down/breathing'
+      fullPath: '/wind-down/breathing'
+      preLoaderRoute: typeof WindDownBreathingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sleep_/summary': {
       id: '/sleep_/summary'
       path: '/sleep/summary'
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   WindDownRoute: WindDownRoute,
   SleepQualityRoute: SleepQualityRoute,
   SleepSummaryRoute: SleepSummaryRoute,
+  WindDownBreathingRoute: WindDownBreathingRoute,
   WindDownMusicRoute: WindDownMusicRoute,
 }
 export const routeTree = rootRouteImport
