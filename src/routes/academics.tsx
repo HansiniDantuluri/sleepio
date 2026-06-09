@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { motion, Reorder } from "framer-motion";
-import { Plus, Trash2, BookOpen, Sparkles } from "lucide-react";
+import { Plus, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "../components/app-shell";
 import { Button } from "../components/ui/button";
@@ -560,5 +560,3 @@ function StudyPlanGrid({
     </div>
   );
 }
-
-export { BookOpen };
