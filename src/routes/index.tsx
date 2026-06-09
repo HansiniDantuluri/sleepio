@@ -483,3 +483,221 @@ function StatsCard() {
     </Link>
   );
 }
+
+// ============= Active schedule (Phase 5) =============
+
+type ServerBlock = {
+  startTime: string;
+  endTime: string;
+  taskName: string;
+  type: string;
+  color: "red" | "yellow" | "blue" | "purple" | "indigo" | "gray";
+  isLocked: boolean;
+  rationale: string;
+};
+
+type ServerTask = {
+  id: string;
+  name: string;
+  type: string;
+  deadline?: string;
+  durationMin: number;
+  priority: "high" | "medium" | "low";
+};
+
+type ServerPrefs = {
+  sleepGoalTime: string;
+  wakeTime: string;
+  energy: "low" | "medium" | "high";
+  intensity: number;
+  date: string;
+};
+
+function toMin(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function fmtMin(total: number): string {
+  const t = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+}
+function keyOf(b: ServerBlock): string {
+  return `${b.startTime}-${b.taskName}`;
+}
+
+function ScheduleSection({
+  now,
+  sleepHour,
+  sleepMin,
+  activeBlocks,
+  rebuilding,
+  changedKeys,
+  overflow,
+  version,
+  onDelay,
+  onSkip,
+}: {
+  now: Date;
+  sleepHour: number;
+  sleepMin: number;
+  activeBlocks: ServerBlock[] | null;
+  rebuilding: boolean;
+  changedKeys: Set<string>;
+  overflow: boolean;
+  version: number;
+  onDelay: (i: number) => void;
+  onSkip: (i: number) => void;
+}) {
+  if (!activeBlocks || activeBlocks.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <AnimatePresence>
+        {rebuilding && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground"
+          >
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+            Rebuilding your schedule…
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {overflow && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Some tasks moved to tomorrow to protect your sleep
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="rounded-3xl border border-border bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-foreground">Your active schedule</h2>
+          <span className="text-xs text-muted-foreground">
+            {fmtClock(now)} → {String(sleepHour).padStart(2, "0")}:{String(sleepMin).padStart(2, "0")}
+          </span>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={version}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className="space-y-2"
+          >
+            {activeBlocks.map((b, i) => (
+              <ActiveBlockRow
+                key={`${version}-${keyOf(b)}-${i}`}
+                block={b}
+                index={i}
+                pulse={changedKeys.has(keyOf(b))}
+                onDelay={onDelay}
+                onSkip={onSkip}
+              />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function ActiveBlockRow({
+  block,
+  index,
+  pulse,
+  onDelay,
+  onSkip,
+}: {
+  block: ServerBlock;
+  index: number;
+  pulse: boolean;
+  onDelay: (i: number) => void;
+  onSkip: (i: number) => void;
+}) {
+  const isSleep = block.type === "sleep";
+  const isWind = block.type === "wind";
+  const isBreak = block.type === "break";
+  const locked = block.isLocked || isSleep;
+
+  let cls = "bg-surface-elevated border border-border";
+  let icon = <BookOpen className="h-4 w-4" />;
+  if (isSleep) {
+    cls = "bg-[oklch(0.25_0.08_270)] text-white border-transparent";
+    icon = <Lock className="h-4 w-4" />;
+  } else if (isWind) {
+    cls = "bg-[oklch(0.88_0.06_295)] dark:bg-[oklch(0.38_0.1_295)] border-transparent";
+    icon = <Moon className="h-4 w-4" />;
+  } else if (isBreak) {
+    cls = "bg-muted border-border";
+    icon = <Coffee className="h-4 w-4" />;
+  } else if (block.color === "red") {
+    cls = "bg-[oklch(0.95_0.08_25)] dark:bg-[oklch(0.4_0.15_25)] border-transparent";
+  } else if (block.color === "yellow") {
+    cls = "bg-[oklch(0.96_0.1_90)] dark:bg-[oklch(0.4_0.1_90)] border-transparent";
+  } else if (block.color === "blue") {
+    cls = "bg-[oklch(0.93_0.07_235)] dark:bg-[oklch(0.38_0.1_235)] border-transparent";
+  }
+
+  return (
+    <motion.div
+      layout
+      initial={pulse ? { boxShadow: "0 0 0 0 oklch(0.85 0.18 90)" } : false}
+      animate={
+        pulse
+          ? {
+              boxShadow: [
+                "0 0 0 0 oklch(0.85 0.18 90 / 0.7)",
+                "0 0 0 8px oklch(0.85 0.18 90 / 0)",
+                "0 0 0 0 oklch(0.85 0.18 90 / 0.7)",
+              ],
+            }
+          : { boxShadow: "0 0 0 0 oklch(0.85 0.18 90 / 0)" }
+      }
+      transition={pulse ? { duration: 1, repeat: 2 } : { duration: 0.2 }}
+      className={`flex items-center gap-3 rounded-2xl px-3 py-3 ${cls} ${locked ? "opacity-95" : ""}`}
+    >
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/10">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{block.taskName}</p>
+        <p className="text-[11px] opacity-80">
+          {block.startTime} – {block.endTime}
+        </p>
+      </div>
+      {!locked && !isWind && (
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onDelay(index)}
+            aria-label="Delay 15 minutes"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 transition active:scale-90"
+          >
+            <Clock className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onSkip(index)}
+            aria-label="Skip task"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 transition active:scale-90"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </motion.div>
+  );
+}
