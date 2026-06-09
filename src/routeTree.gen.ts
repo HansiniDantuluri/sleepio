@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WindDownRouteImport } from './routes/wind-down'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SleepRouteImport } from './routes/sleep'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as FocusRouteImport } from './routes/focus'
@@ -37,6 +38,11 @@ const StatsRoute = StatsRouteImport.update({
 const SleepRoute = SleepRouteImport.update({
   id: '/sleep',
   path: '/sleep',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanRoute = PlanRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/settings': typeof SettingsRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
   '/wind-down': typeof WindDownRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/settings': typeof SettingsRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
   '/wind-down': typeof WindDownRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/focus': typeof FocusRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/settings': typeof SettingsRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
   '/wind-down': typeof WindDownRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/focus'
     | '/onboarding'
     | '/plan'
+    | '/settings'
     | '/sleep'
     | '/stats'
     | '/wind-down'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/focus'
     | '/onboarding'
     | '/plan'
+    | '/settings'
     | '/sleep'
     | '/stats'
     | '/wind-down'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/focus'
     | '/onboarding'
     | '/plan'
+    | '/settings'
     | '/sleep'
     | '/stats'
     | '/wind-down'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   FocusRoute: typeof FocusRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
+  SettingsRoute: typeof SettingsRoute
   SleepRoute: typeof SleepRoute
   StatsRoute: typeof StatsRoute
   WindDownRoute: typeof WindDownRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/sleep'
       fullPath: '/sleep'
       preLoaderRoute: typeof SleepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plan': {
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   FocusRoute: FocusRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
+  SettingsRoute: SettingsRoute,
   SleepRoute: SleepRoute,
   StatsRoute: StatsRoute,
   WindDownRoute: WindDownRoute,
