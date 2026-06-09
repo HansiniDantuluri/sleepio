@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { AppShell } from "../components/app-shell";
 
 export const Route = createFileRoute("/")({
@@ -25,6 +26,16 @@ function Index() {
   return (
     <AppShell subtitle={greeting} title="SleepIO">
       <div className="space-y-4">
+        <Link
+          to="/onboarding"
+          className="block rounded-3xl border border-primary/30 bg-primary/10 p-5 text-foreground transition hover:border-primary/60"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">Get started</p>
+          <h2 className="mt-2 text-lg font-semibold">Set up your plan</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            5 quick questions about sleep, school, and study so we can personalize SleepIO.
+          </p>
+        </Link>
         <PlaceholderCard
           eyebrow="Tonight"
           title="Wind down at 10:30 PM"
