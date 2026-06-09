@@ -23,10 +23,6 @@ import { Route as WindDownMusicRouteImport } from './routes/wind-down_.music'
 import { Route as WindDownBreathingRouteImport } from './routes/wind-down_.breathing'
 import { Route as SleepSummaryRouteImport } from './routes/sleep_.summary'
 import { Route as SleepQualityRouteImport } from './routes/sleep_.quality'
-import { Route as WindDownRouteImport } from './routes/wind-down'
-import { Route as WindDownMusicRouteImport } from './routes/wind-down_.music'
-import { Route as WindDownBreathingRouteImport } from './routes/wind-down_.breathing'
-import { Route as WindDownStoryRouteImport } from './routes/wind-down_.story'
 
 const WindDownRoute = WindDownRouteImport.update({
   id: '/wind-down',
