@@ -9,141 +9,158 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StatsRouteImport } from './routes/stats'
-import { Route as SleepRouteImport } from './routes/sleep'
-import { Route as PlanRouteImport } from './routes/plan'
-import { Route as FocusRouteImport } from './routes/focus'
-import { Route as AcademicsRouteImport } from './routes/academics'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedStatsRouteImport } from './routes/_authenticated/stats'
+import { Route as AuthenticatedSleepRouteImport } from './routes/_authenticated/sleep'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
+import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/focus'
+import { Route as AuthenticatedAcademicsRouteImport } from './routes/_authenticated/academics'
 
-const StatsRoute = StatsRouteImport.update({
-  id: '/stats',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedStatsRoute = AuthenticatedStatsRouteImport.update({
+  id: '/_authenticated/stats',
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SleepRoute = SleepRouteImport.update({
-  id: '/sleep',
+const AuthenticatedSleepRoute = AuthenticatedSleepRouteImport.update({
+  id: '/_authenticated/sleep',
   path: '/sleep',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlanRoute = PlanRouteImport.update({
-  id: '/plan',
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/_authenticated/plan',
   path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FocusRoute = FocusRouteImport.update({
-  id: '/focus',
+const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({
+  id: '/_authenticated/focus',
   path: '/focus',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AcademicsRoute = AcademicsRouteImport.update({
-  id: '/academics',
+const AuthenticatedAcademicsRoute = AuthenticatedAcademicsRouteImport.update({
+  id: '/_authenticated/academics',
   path: '/academics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/focus': typeof FocusRoute
-  '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
-  '/stats': typeof StatsRoute
+  '/academics': typeof AuthenticatedAcademicsRoute
+  '/focus': typeof AuthenticatedFocusRoute
+  '/plan': typeof AuthenticatedPlanRoute
+  '/sleep': typeof AuthenticatedSleepRoute
+  '/stats': typeof AuthenticatedStatsRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/focus': typeof FocusRoute
-  '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
-  '/stats': typeof StatsRoute
+  '/academics': typeof AuthenticatedAcademicsRoute
+  '/focus': typeof AuthenticatedFocusRoute
+  '/plan': typeof AuthenticatedPlanRoute
+  '/sleep': typeof AuthenticatedSleepRoute
+  '/stats': typeof AuthenticatedStatsRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/focus': typeof FocusRoute
-  '/plan': typeof PlanRoute
-  '/sleep': typeof SleepRoute
-  '/stats': typeof StatsRoute
+  '/_authenticated/academics': typeof AuthenticatedAcademicsRoute
+  '/_authenticated/focus': typeof AuthenticatedFocusRoute
+  '/_authenticated/plan': typeof AuthenticatedPlanRoute
+  '/_authenticated/sleep': typeof AuthenticatedSleepRoute
+  '/_authenticated/stats': typeof AuthenticatedStatsRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
+  fullPaths: '/academics' | '/focus' | '/plan' | '/sleep' | '/stats' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
-  id: '__root__' | '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
+  to: '/academics' | '/focus' | '/plan' | '/sleep' | '/stats' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated/academics'
+    | '/_authenticated/focus'
+    | '/_authenticated/plan'
+    | '/_authenticated/sleep'
+    | '/_authenticated/stats'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AcademicsRoute: typeof AcademicsRoute
-  FocusRoute: typeof FocusRoute
-  PlanRoute: typeof PlanRoute
-  SleepRoute: typeof SleepRoute
-  StatsRoute: typeof StatsRoute
+  AuthenticatedAcademicsRoute: typeof AuthenticatedAcademicsRoute
+  AuthenticatedFocusRoute: typeof AuthenticatedFocusRoute
+  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
+  AuthenticatedSleepRoute: typeof AuthenticatedSleepRoute
+  AuthenticatedStatsRoute: typeof AuthenticatedStatsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stats': {
-      id: '/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof StatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sleep': {
-      id: '/sleep'
-      path: '/sleep'
-      fullPath: '/sleep'
-      preLoaderRoute: typeof SleepRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plan': {
-      id: '/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof PlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/focus': {
-      id: '/focus'
-      path: '/focus'
-      fullPath: '/focus'
-      preLoaderRoute: typeof FocusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/academics': {
-      id: '/academics'
-      path: '/academics'
-      fullPath: '/academics'
-      preLoaderRoute: typeof AcademicsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/stats': {
+      id: '/_authenticated/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof AuthenticatedStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/sleep': {
+      id: '/_authenticated/sleep'
+      path: '/sleep'
+      fullPath: '/sleep'
+      preLoaderRoute: typeof AuthenticatedSleepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/focus': {
+      id: '/_authenticated/focus'
+      path: '/focus'
+      fullPath: '/focus'
+      preLoaderRoute: typeof AuthenticatedFocusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/academics': {
+      id: '/_authenticated/academics'
+      path: '/academics'
+      fullPath: '/academics'
+      preLoaderRoute: typeof AuthenticatedAcademicsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AcademicsRoute: AcademicsRoute,
-  FocusRoute: FocusRoute,
-  PlanRoute: PlanRoute,
-  SleepRoute: SleepRoute,
-  StatsRoute: StatsRoute,
+  AuthenticatedAcademicsRoute: AuthenticatedAcademicsRoute,
+  AuthenticatedFocusRoute: AuthenticatedFocusRoute,
+  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
+  AuthenticatedSleepRoute: AuthenticatedSleepRoute,
+  AuthenticatedStatsRoute: AuthenticatedStatsRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

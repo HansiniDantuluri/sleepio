@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "../components/app-shell";
 import { StubPanel } from "../components/stub-panel";
 
-export const Route = createFileRoute("/plan")({
+export const Route = createFileRoute("/_authenticated/plan")({
   head: () => ({
     meta: [
       { title: "Plan — SleepIO" },
