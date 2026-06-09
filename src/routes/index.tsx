@@ -44,6 +44,16 @@ function Index() {
   const [greeting, setGreeting] = useState<string>("");
   const [coachMsg, setCoachMsg] = useState<string>("");
   const fetchCoach = useServerFn(getCoachMessage);
+  const fetchActive = useServerFn(getActiveSchedule);
+  const saveActive = useServerFn(saveActiveSchedule);
+
+  const [activeBlocks, setActiveBlocks] = useState<ServerBlock[] | null>(null);
+  const [activeTasks, setActiveTasks] = useState<ServerTask[]>([]);
+  const [activePrefs, setActivePrefs] = useState<ServerPrefs | null>(null);
+  const [rebuilding, setRebuilding] = useState(false);
+  const [changedKeys, setChangedKeys] = useState<Set<string>>(new Set());
+  const [overflowWarning, setOverflowWarning] = useState(false);
+  const [scheduleVersion, setScheduleVersion] = useState(0);
 
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -51,6 +61,24 @@ function Index() {
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, []);
+
+  // Load active schedule once
+  useEffect(() => {
+    let cancelled = false;
+    fetchActive()
+      .then((res) => {
+        if (cancelled || !res.schedule) return;
+        setActiveBlocks((res.schedule.blocks as ServerBlock[]) ?? null);
+        setActiveTasks((res.schedule.tasks as ServerTask[]) ?? []);
+        setActivePrefs((res.schedule.preferences as ServerPrefs) ?? null);
+      })
+      .catch(() => {
+        /* unauth or offline: fallback to mock */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchActive]);
 
   useEffect(() => {
     if (!now) return;
@@ -95,6 +123,88 @@ function Index() {
     const [h, m] = parseHHMM(localStorage.getItem("sleep_goal_time"), [22, 0]);
     return { h, m };
   }, [now]);
+
+  const sleepStartMin = sleep.h * 60 + sleep.m;
+
+  const applyRebuild = useCallback(
+    async (nextBlocks: ServerBlock[], changed: string[]) => {
+      // Always preserve original sleep block time
+      const originalSleep = activeBlocks?.find((b) => b.type === "sleep");
+      const withSleep = nextBlocks.map((b) =>
+        b.type === "sleep" && originalSleep ? { ...originalSleep } : b,
+      );
+      // Detect tasks pushed past sleep
+      const overflow = withSleep.some(
+        (b) => b.type !== "sleep" && b.type !== "wind" && toMin(b.endTime) > sleepStartMin,
+      );
+      setOverflowWarning(overflow);
+
+      setRebuilding(true);
+      setActiveBlocks(withSleep);
+      setScheduleVersion((v) => v + 1);
+      setChangedKeys(new Set(changed));
+
+      // Pulse for 2s
+      window.setTimeout(() => setChangedKeys(new Set()), 2000);
+
+      try {
+        if (activePrefs) {
+          await saveActive({ data: { tasks: activeTasks, blocks: withSleep, preferences: activePrefs } });
+        }
+        toast.success("Schedule updated to keep your sleep on track ✓");
+      } catch {
+        toast.error("Couldn't save schedule update");
+      } finally {
+        setRebuilding(false);
+      }
+    },
+    [activeBlocks, activeTasks, activePrefs, saveActive, sleepStartMin],
+  );
+
+  const handleDelay = useCallback(
+    (index: number) => {
+      if (!activeBlocks) return;
+      const SHIFT = 15;
+      const next: ServerBlock[] = activeBlocks.map((b, i) => {
+        if (b.isLocked || b.type === "sleep" || b.type === "wind") return b;
+        if (i < index) return b;
+        return {
+          ...b,
+          startTime: fmtMin(toMin(b.startTime) + SHIFT),
+          endTime: fmtMin(toMin(b.endTime) + SHIFT),
+        };
+      });
+      const changed = next.slice(index).filter((b) => !b.isLocked && b.type !== "sleep").map(keyOf);
+      void applyRebuild(next, changed);
+    },
+    [activeBlocks, applyRebuild],
+  );
+
+  const handleSkip = useCallback(
+    (index: number) => {
+      if (!activeBlocks) return;
+      const removed = activeBlocks[index];
+      if (!removed || removed.isLocked || removed.type === "sleep") return;
+      const dur = toMin(removed.endTime) - toMin(removed.startTime);
+      const next: ServerBlock[] = activeBlocks
+        .filter((_, i) => i !== index)
+        .map((b, i, arr) => {
+          // Pull forward subsequent non-locked blocks by `dur`
+          const origIndex = i >= index ? i + 1 : i;
+          if (origIndex <= index) return b;
+          if (b.isLocked || b.type === "sleep" || b.type === "wind") return b;
+          return {
+            ...b,
+            startTime: fmtMin(Math.max(0, toMin(b.startTime) - dur)),
+            endTime: fmtMin(Math.max(0, toMin(b.endTime) - dur)),
+          };
+        });
+        void arr; // silence
+      const changed = next.filter((b) => !b.isLocked && b.type !== "sleep" && b.type !== "wind").map(keyOf);
+      void applyRebuild(next, changed);
+    },
+    [activeBlocks, applyRebuild],
+  );
 
   if (!now) {
     return (
@@ -148,6 +258,19 @@ function Index() {
         </motion.div>
 
         <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+
+        <ScheduleSection
+          now={now}
+          sleepHour={sleep.h}
+          sleepMin={sleep.m}
+          activeBlocks={activeBlocks}
+          rebuilding={rebuilding}
+          changedKeys={changedKeys}
+          overflow={overflowWarning}
+          version={scheduleVersion}
+          onDelay={handleDelay}
+          onSkip={handleSkip}
+        />
 
         <div className="grid grid-cols-3 gap-3">
           <ActionButton to="/plan" label="Plan My Day" tone="brand" />
