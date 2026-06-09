@@ -272,6 +272,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          app_blocking: boolean
+          created_at: string
+          notifications: Json
+          sleep_target_minutes: number
+          subjects: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_blocking?: boolean
+          created_at?: string
+          notifications?: Json
+          sleep_target_minutes?: number
+          subjects?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_blocking?: boolean
+          created_at?: string
+          notifications?: Json
+          sleep_target_minutes?: number
+          subjects?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
