@@ -26,7 +26,7 @@ function BreathingPage() {
   const [preset, setPreset] = useState<keyof typeof PATTERN_PRESETS>("4-7-8");
   const pattern = PATTERN_PRESETS[preset];
   const [phase, setPhase] = useState<Phase>("inhale");
-  const [secondsLeft, setSecondsLeft] = useState(pattern.inhale);
+  const [secondsLeft, setSecondsLeft] = useState<number>(pattern.inhale);
   const [cycle, setCycle] = useState(1);
   const [running, setRunning] = useState(true);
 
