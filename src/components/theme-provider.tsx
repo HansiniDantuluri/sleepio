@@ -12,11 +12,40 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "sleepio.theme";
 
+const DEFAULT_SLEEP_GOAL = "22:00";
+const DEFAULT_WAKE = "06:00";
+
+function parseHHMM(value: string | null | undefined, fallback: string): number {
+  const raw = value ?? fallback;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(raw);
+  const src = m ? raw : fallback;
+  const [h, mm] = src.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(mm)) {
+    const [fh, fm] = fallback.split(":").map(Number);
+    return fh * 60 + fm;
+  }
+  return ((h % 24) * 60 + (mm % 60));
+}
+
 function resolveAuto(): ResolvedTheme {
   if (typeof Date === "undefined") return "productivity";
-  const h = new Date().getHours();
-  // Sleep theme between 8pm and 6am
-  return h >= 20 || h < 6 ? "sleep" : "productivity";
+  let sleepGoal = DEFAULT_SLEEP_GOAL;
+  let wake = DEFAULT_WAKE;
+  if (typeof localStorage !== "undefined") {
+    sleepGoal = localStorage.getItem("sleep_goal_time") ?? DEFAULT_SLEEP_GOAL;
+    wake = localStorage.getItem("wake_time") ?? DEFAULT_WAKE;
+  }
+  const sleepGoalMin = parseHHMM(sleepGoal, DEFAULT_SLEEP_GOAL);
+  const wakeMin = parseHHMM(wake, DEFAULT_WAKE);
+  const sleepStart = (sleepGoalMin - 60 + 1440) % 1440;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Interval [sleepStart, wakeMin) on a 24h clock; handle wrap.
+  const inSleep =
+    sleepStart < wakeMin
+      ? nowMin >= sleepStart && nowMin < wakeMin
+      : nowMin >= sleepStart || nowMin < wakeMin;
+  return inSleep ? "sleep" : "productivity";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
