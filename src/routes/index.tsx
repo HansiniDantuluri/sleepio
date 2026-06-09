@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles, Clock, X, AlertTriangle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "../components/app-shell";
 import { getCoachMessage } from "../lib/api/coach.functions";
+import { getActiveSchedule, saveActiveSchedule } from "../lib/api/schedule.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,6 +44,16 @@ function Index() {
   const [greeting, setGreeting] = useState<string>("");
   const [coachMsg, setCoachMsg] = useState<string>("");
   const fetchCoach = useServerFn(getCoachMessage);
+  const fetchActive = useServerFn(getActiveSchedule);
+  const saveActive = useServerFn(saveActiveSchedule);
+
+  const [activeBlocks, setActiveBlocks] = useState<ServerBlock[] | null>(null);
+  const [activeTasks, setActiveTasks] = useState<ServerTask[]>([]);
+  const [activePrefs, setActivePrefs] = useState<ServerPrefs | null>(null);
+  const [rebuilding, setRebuilding] = useState(false);
+  const [changedKeys, setChangedKeys] = useState<Set<string>>(new Set());
+  const [overflowWarning, setOverflowWarning] = useState(false);
+  const [scheduleVersion, setScheduleVersion] = useState(0);
 
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -49,6 +61,24 @@ function Index() {
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, []);
+
+  // Load active schedule once
+  useEffect(() => {
+    let cancelled = false;
+    fetchActive()
+      .then((res) => {
+        if (cancelled || !res.schedule) return;
+        setActiveBlocks((res.schedule.blocks as ServerBlock[]) ?? null);
+        setActiveTasks((res.schedule.tasks as ServerTask[]) ?? []);
+        setActivePrefs((res.schedule.preferences as ServerPrefs) ?? null);
+      })
+      .catch(() => {
+        /* unauth or offline: fallback to mock */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchActive]);
 
   useEffect(() => {
     if (!now) return;
@@ -93,6 +123,87 @@ function Index() {
     const [h, m] = parseHHMM(localStorage.getItem("sleep_goal_time"), [22, 0]);
     return { h, m };
   }, [now]);
+
+  const sleepStartMin = sleep.h * 60 + sleep.m;
+
+  const applyRebuild = useCallback(
+    async (nextBlocks: ServerBlock[], changed: string[]) => {
+      // Always preserve original sleep block time
+      const originalSleep = activeBlocks?.find((b) => b.type === "sleep");
+      const withSleep = nextBlocks.map((b) =>
+        b.type === "sleep" && originalSleep ? { ...originalSleep } : b,
+      );
+      // Detect tasks pushed past sleep
+      const overflow = withSleep.some(
+        (b) => b.type !== "sleep" && b.type !== "wind" && toMin(b.endTime) > sleepStartMin,
+      );
+      setOverflowWarning(overflow);
+
+      setRebuilding(true);
+      setActiveBlocks(withSleep);
+      setScheduleVersion((v) => v + 1);
+      setChangedKeys(new Set(changed));
+
+      // Pulse for 2s
+      window.setTimeout(() => setChangedKeys(new Set()), 2000);
+
+      try {
+        if (activePrefs) {
+          await saveActive({ data: { tasks: activeTasks, blocks: withSleep, preferences: activePrefs } });
+        }
+        toast.success("Schedule updated to keep your sleep on track ✓");
+      } catch {
+        toast.error("Couldn't save schedule update");
+      } finally {
+        setRebuilding(false);
+      }
+    },
+    [activeBlocks, activeTasks, activePrefs, saveActive, sleepStartMin],
+  );
+
+  const handleDelay = useCallback(
+    (index: number) => {
+      if (!activeBlocks) return;
+      const SHIFT = 15;
+      const next: ServerBlock[] = activeBlocks.map((b, i) => {
+        if (b.isLocked || b.type === "sleep" || b.type === "wind") return b;
+        if (i < index) return b;
+        return {
+          ...b,
+          startTime: fmtMin(toMin(b.startTime) + SHIFT),
+          endTime: fmtMin(toMin(b.endTime) + SHIFT),
+        };
+      });
+      const changed = next.slice(index).filter((b) => !b.isLocked && b.type !== "sleep").map(keyOf);
+      void applyRebuild(next, changed);
+    },
+    [activeBlocks, applyRebuild],
+  );
+
+  const handleSkip = useCallback(
+    (index: number) => {
+      if (!activeBlocks) return;
+      const removed = activeBlocks[index];
+      if (!removed || removed.isLocked || removed.type === "sleep") return;
+      const dur = toMin(removed.endTime) - toMin(removed.startTime);
+      const next: ServerBlock[] = [];
+      activeBlocks.forEach((b, i) => {
+        if (i === index) return;
+        if (i > index && !b.isLocked && b.type !== "sleep" && b.type !== "wind") {
+          next.push({
+            ...b,
+            startTime: fmtMin(Math.max(0, toMin(b.startTime) - dur)),
+            endTime: fmtMin(Math.max(0, toMin(b.endTime) - dur)),
+          });
+        } else {
+          next.push(b);
+        }
+      });
+      const changed = next.filter((b) => !b.isLocked && b.type !== "sleep" && b.type !== "wind").map(keyOf);
+      void applyRebuild(next, changed);
+    },
+    [activeBlocks, applyRebuild],
+  );
 
   if (!now) {
     return (
@@ -146,6 +257,19 @@ function Index() {
         </motion.div>
 
         <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+
+        <ScheduleSection
+          now={now}
+          sleepHour={sleep.h}
+          sleepMin={sleep.m}
+          activeBlocks={activeBlocks}
+          rebuilding={rebuilding}
+          changedKeys={changedKeys}
+          overflow={overflowWarning}
+          version={scheduleVersion}
+          onDelay={handleDelay}
+          onSkip={handleSkip}
+        />
 
         <div className="grid grid-cols-3 gap-3">
           <ActionButton to="/plan" label="Plan My Day" tone="brand" />
@@ -357,5 +481,223 @@ function StatsCard() {
       </div>
       <ChevronRight className="h-5 w-5 text-muted-foreground" />
     </Link>
+  );
+}
+
+// ============= Active schedule (Phase 5) =============
+
+type ServerBlock = {
+  startTime: string;
+  endTime: string;
+  taskName: string;
+  type: string;
+  color: "red" | "yellow" | "blue" | "purple" | "indigo" | "gray";
+  isLocked: boolean;
+  rationale: string;
+};
+
+type ServerTask = {
+  id: string;
+  name: string;
+  type: string;
+  deadline?: string;
+  durationMin: number;
+  priority: "high" | "medium" | "low";
+};
+
+type ServerPrefs = {
+  sleepGoalTime: string;
+  wakeTime: string;
+  energy: "low" | "medium" | "high";
+  intensity: number;
+  date: string;
+};
+
+function toMin(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function fmtMin(total: number): string {
+  const t = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+}
+function keyOf(b: ServerBlock): string {
+  return `${b.startTime}-${b.taskName}`;
+}
+
+function ScheduleSection({
+  now,
+  sleepHour,
+  sleepMin,
+  activeBlocks,
+  rebuilding,
+  changedKeys,
+  overflow,
+  version,
+  onDelay,
+  onSkip,
+}: {
+  now: Date;
+  sleepHour: number;
+  sleepMin: number;
+  activeBlocks: ServerBlock[] | null;
+  rebuilding: boolean;
+  changedKeys: Set<string>;
+  overflow: boolean;
+  version: number;
+  onDelay: (i: number) => void;
+  onSkip: (i: number) => void;
+}) {
+  if (!activeBlocks || activeBlocks.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <AnimatePresence>
+        {rebuilding && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground"
+          >
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+            Rebuilding your schedule…
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {overflow && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Some tasks moved to tomorrow to protect your sleep
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="rounded-3xl border border-border bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-foreground">Your active schedule</h2>
+          <span className="text-xs text-muted-foreground">
+            {fmtClock(now)} → {String(sleepHour).padStart(2, "0")}:{String(sleepMin).padStart(2, "0")}
+          </span>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={version}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className="space-y-2"
+          >
+            {activeBlocks.map((b, i) => (
+              <ActiveBlockRow
+                key={`${version}-${keyOf(b)}-${i}`}
+                block={b}
+                index={i}
+                pulse={changedKeys.has(keyOf(b))}
+                onDelay={onDelay}
+                onSkip={onSkip}
+              />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function ActiveBlockRow({
+  block,
+  index,
+  pulse,
+  onDelay,
+  onSkip,
+}: {
+  block: ServerBlock;
+  index: number;
+  pulse: boolean;
+  onDelay: (i: number) => void;
+  onSkip: (i: number) => void;
+}) {
+  const isSleep = block.type === "sleep";
+  const isWind = block.type === "wind";
+  const isBreak = block.type === "break";
+  const locked = block.isLocked || isSleep;
+
+  let cls = "bg-surface-elevated border border-border";
+  let icon = <BookOpen className="h-4 w-4" />;
+  if (isSleep) {
+    cls = "bg-[oklch(0.25_0.08_270)] text-white border-transparent";
+    icon = <Lock className="h-4 w-4" />;
+  } else if (isWind) {
+    cls = "bg-[oklch(0.88_0.06_295)] dark:bg-[oklch(0.38_0.1_295)] border-transparent";
+    icon = <Moon className="h-4 w-4" />;
+  } else if (isBreak) {
+    cls = "bg-muted border-border";
+    icon = <Coffee className="h-4 w-4" />;
+  } else if (block.color === "red") {
+    cls = "bg-[oklch(0.95_0.08_25)] dark:bg-[oklch(0.4_0.15_25)] border-transparent";
+  } else if (block.color === "yellow") {
+    cls = "bg-[oklch(0.96_0.1_90)] dark:bg-[oklch(0.4_0.1_90)] border-transparent";
+  } else if (block.color === "blue") {
+    cls = "bg-[oklch(0.93_0.07_235)] dark:bg-[oklch(0.38_0.1_235)] border-transparent";
+  }
+
+  return (
+    <motion.div
+      layout
+      initial={pulse ? { boxShadow: "0 0 0 0 oklch(0.85 0.18 90)" } : false}
+      animate={
+        pulse
+          ? {
+              boxShadow: [
+                "0 0 0 0 oklch(0.85 0.18 90 / 0.7)",
+                "0 0 0 8px oklch(0.85 0.18 90 / 0)",
+                "0 0 0 0 oklch(0.85 0.18 90 / 0.7)",
+              ],
+            }
+          : { boxShadow: "0 0 0 0 oklch(0.85 0.18 90 / 0)" }
+      }
+      transition={pulse ? { duration: 1, repeat: 2 } : { duration: 0.2 }}
+      className={`flex items-center gap-3 rounded-2xl px-3 py-3 ${cls} ${locked ? "opacity-95" : ""}`}
+    >
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/10">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{block.taskName}</p>
+        <p className="text-[11px] opacity-80">
+          {block.startTime} – {block.endTime}
+        </p>
+      </div>
+      {!locked && !isWind && (
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onDelay(index)}
+            aria-label="Delay 15 minutes"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 transition active:scale-90"
+          >
+            <Clock className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onSkip(index)}
+            aria-label="Skip task"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 transition active:scale-90"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </motion.div>
   );
 }
