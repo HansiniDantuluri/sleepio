@@ -186,20 +186,19 @@ function Index() {
       const removed = activeBlocks[index];
       if (!removed || removed.isLocked || removed.type === "sleep") return;
       const dur = toMin(removed.endTime) - toMin(removed.startTime);
-      const next: ServerBlock[] = activeBlocks
-        .filter((_, i) => i !== index)
-        .map((b, i, arr) => {
-          // Pull forward subsequent non-locked blocks by `dur`
-          const origIndex = i >= index ? i + 1 : i;
-          if (origIndex <= index) return b;
-          if (b.isLocked || b.type === "sleep" || b.type === "wind") return b;
-          return {
+      const next: ServerBlock[] = [];
+      activeBlocks.forEach((b, i) => {
+        if (i === index) return;
+        if (i > index && !b.isLocked && b.type !== "sleep" && b.type !== "wind") {
+          next.push({
             ...b,
             startTime: fmtMin(Math.max(0, toMin(b.startTime) - dur)),
             endTime: fmtMin(Math.max(0, toMin(b.endTime) - dur)),
-          };
-        });
-        void arr; // silence
+          });
+        } else {
+          next.push(b);
+        }
+      });
       const changed = next.filter((b) => !b.isLocked && b.type !== "sleep" && b.type !== "wind").map(keyOf);
       void applyRebuild(next, changed);
     },
