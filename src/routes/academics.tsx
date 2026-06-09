@@ -536,14 +536,17 @@ function StudyPlanGrid({
                         <Reorder.Item
                           key={`${b.subject}-${bi}-${b.focus}`}
                           value={b}
-                          draggable
-                          onDragStart={(e: React.DragEvent) => {
-                            e.dataTransfer.setData("text/plain", JSON.stringify({ wi, di, bi }));
-                          }}
                           className="cursor-grab rounded-md bg-primary/10 px-2 py-1 text-[11px]"
                         >
-                          <span className="font-medium">📚 {b.subject}</span>
-                          <span className="ml-2 text-muted-foreground">{b.minutes}m · {b.focus}</span>
+                          <div
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData("text/plain", JSON.stringify({ wi, di, bi }));
+                            }}
+                          >
+                            <span className="font-medium">📚 {b.subject}</span>
+                            <span className="ml-2 text-muted-foreground">{b.minutes}m · {b.focus}</span>
+                          </div>
                         </Reorder.Item>
                       ))}
                     </Reorder.Group>
