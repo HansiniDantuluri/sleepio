@@ -80,7 +80,8 @@ function SleepTrackingPage() {
         } catch {
           /* ignore */
         }
-        navigate({ to: "/sleep/quality", search: { id: sessionId } });
+        try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+        navigate({ to: "/sleep/quality" });
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -97,7 +98,8 @@ function SleepTrackingPage() {
     } catch {
       /* ignore */
     }
-    navigate({ to: "/sleep/quality", search: { id: sessionId } });
+    try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+    navigate({ to: "/sleep/quality" });
   };
 
   return (
