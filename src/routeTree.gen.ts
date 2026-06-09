@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WindDownRouteImport } from './routes/wind-down'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SleepRouteImport } from './routes/sleep'
 import { Route as PlanRouteImport } from './routes/plan'
@@ -17,9 +18,17 @@ import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WindDownStoryRouteImport } from './routes/wind-down_.story'
+import { Route as WindDownMusicRouteImport } from './routes/wind-down_.music'
+import { Route as WindDownBreathingRouteImport } from './routes/wind-down_.breathing'
 import { Route as SleepSummaryRouteImport } from './routes/sleep_.summary'
 import { Route as SleepQualityRouteImport } from './routes/sleep_.quality'
 
+const WindDownRoute = WindDownRouteImport.update({
+  id: '/wind-down',
+  path: '/wind-down',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -60,6 +69,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WindDownStoryRoute = WindDownStoryRouteImport.update({
+  id: '/wind-down_/story',
+  path: '/wind-down/story',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WindDownMusicRoute = WindDownMusicRouteImport.update({
+  id: '/wind-down_/music',
+  path: '/wind-down/music',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WindDownBreathingRoute = WindDownBreathingRouteImport.update({
+  id: '/wind-down_/breathing',
+  path: '/wind-down/breathing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SleepSummaryRoute = SleepSummaryRouteImport.update({
   id: '/sleep_/summary',
   path: '/sleep/summary',
@@ -80,8 +104,12 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
+  '/wind-down/breathing': typeof WindDownBreathingRoute
+  '/wind-down/music': typeof WindDownMusicRoute
+  '/wind-down/story': typeof WindDownStoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,8 +120,12 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep/quality': typeof SleepQualityRoute
   '/sleep/summary': typeof SleepSummaryRoute
+  '/wind-down/breathing': typeof WindDownBreathingRoute
+  '/wind-down/music': typeof WindDownMusicRoute
+  '/wind-down/story': typeof WindDownStoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,8 +137,12 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
+  '/wind-down': typeof WindDownRoute
   '/sleep_/quality': typeof SleepQualityRoute
   '/sleep_/summary': typeof SleepSummaryRoute
+  '/wind-down_/breathing': typeof WindDownBreathingRoute
+  '/wind-down_/music': typeof WindDownMusicRoute
+  '/wind-down_/story': typeof WindDownStoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,8 +155,12 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
+    | '/wind-down/breathing'
+    | '/wind-down/music'
+    | '/wind-down/story'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -131,8 +171,12 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep/quality'
     | '/sleep/summary'
+    | '/wind-down/breathing'
+    | '/wind-down/music'
+    | '/wind-down/story'
   id:
     | '__root__'
     | '/'
@@ -143,8 +187,12 @@ export interface FileRouteTypes {
     | '/plan'
     | '/sleep'
     | '/stats'
+    | '/wind-down'
     | '/sleep_/quality'
     | '/sleep_/summary'
+    | '/wind-down_/breathing'
+    | '/wind-down_/music'
+    | '/wind-down_/story'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,12 +204,23 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   SleepRoute: typeof SleepRoute
   StatsRoute: typeof StatsRoute
+  WindDownRoute: typeof WindDownRoute
   SleepQualityRoute: typeof SleepQualityRoute
   SleepSummaryRoute: typeof SleepSummaryRoute
+  WindDownBreathingRoute: typeof WindDownBreathingRoute
+  WindDownMusicRoute: typeof WindDownMusicRoute
+  WindDownStoryRoute: typeof WindDownStoryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wind-down': {
+      id: '/wind-down'
+      path: '/wind-down'
+      fullPath: '/wind-down'
+      preLoaderRoute: typeof WindDownRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
@@ -218,6 +277,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wind-down_/story': {
+      id: '/wind-down_/story'
+      path: '/wind-down/story'
+      fullPath: '/wind-down/story'
+      preLoaderRoute: typeof WindDownStoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wind-down_/music': {
+      id: '/wind-down_/music'
+      path: '/wind-down/music'
+      fullPath: '/wind-down/music'
+      preLoaderRoute: typeof WindDownMusicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wind-down_/breathing': {
+      id: '/wind-down_/breathing'
+      path: '/wind-down/breathing'
+      fullPath: '/wind-down/breathing'
+      preLoaderRoute: typeof WindDownBreathingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sleep_/summary': {
       id: '/sleep_/summary'
       path: '/sleep/summary'
@@ -244,8 +324,12 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   SleepRoute: SleepRoute,
   StatsRoute: StatsRoute,
+  WindDownRoute: WindDownRoute,
   SleepQualityRoute: SleepQualityRoute,
   SleepSummaryRoute: SleepSummaryRoute,
+  WindDownBreathingRoute: WindDownBreathingRoute,
+  WindDownMusicRoute: WindDownMusicRoute,
+  WindDownStoryRoute: WindDownStoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
