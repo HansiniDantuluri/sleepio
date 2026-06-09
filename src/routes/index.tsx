@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AppShell } from "../components/app-shell";
 
 export const Route = createFileRoute("/")({
@@ -15,13 +16,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const greeting = (() => {
+  const [greeting, setGreeting] = useState<string | undefined>(undefined);
+  useEffect(() => {
     const h = new Date().getHours();
-    if (h < 5) return "Still up?";
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
-  })();
+    if (h < 5) setGreeting("Still up?");
+    else if (h < 12) setGreeting("Good morning");
+    else if (h < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
+  }, []);
 
   return (
     <AppShell subtitle={greeting} title="SleepIO">
