@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      internal_assessments: {
+        Row: {
+          created_at: string
+          due_date: string
+          ia_type: string
+          id: string
+          notes: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_date: string
+          ia_type: string
+          id?: string
+          notes?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          ia_type?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -87,6 +123,111 @@ export type Database = {
           preferences?: Json
           schedule_date?: string
           tasks?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          felt_enough: boolean | null
+          id: string
+          mood_score: number | null
+          narrative: string | null
+          quality_score: number | null
+          start_time: string
+          status: string
+          target_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          felt_enough?: boolean | null
+          id?: string
+          mood_score?: number | null
+          narrative?: string | null
+          quality_score?: number | null
+          start_time?: string
+          status?: string
+          target_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          felt_enough?: boolean | null
+          id?: string
+          mood_score?: number | null
+          narrative?: string | null
+          quality_score?: number | null
+          start_time?: string
+          status?: string
+          target_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          plan: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      summative_exams: {
+        Row: {
+          created_at: string
+          exam_board: string
+          exam_date: string
+          id: string
+          paper_type: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exam_board: string
+          exam_date: string
+          id?: string
+          paper_type: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exam_board?: string
+          exam_date?: string
+          id?: string
+          paper_type?: string
+          subject?: string
           updated_at?: string
           user_id?: string
         }
