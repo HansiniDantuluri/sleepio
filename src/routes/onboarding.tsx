@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ThemeToggle } from "../components/theme-toggle";
 
 export const Route = createFileRoute("/onboarding")({
@@ -27,13 +27,27 @@ type Draft = {
   energy_pattern?: string;
 };
 
+const DEFAULTS = {
+  sleep_goal_time: "22:00",
+  wake_time: "06:00",
+  school_start: "08:00",
+  school_end: "15:00",
+} as const;
+
 function loadDraft(): Draft {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-  } catch {
-    return {};
+  if (typeof window === "undefined") {
+    return { ...DEFAULTS };
   }
+  let stored: Draft = {};
+  try {
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch {
+    stored = {};
+  }
+  return {
+    ...DEFAULTS,
+    ...stored,
+  };
 }
 
 function saveDraft(d: Draft) {
@@ -45,6 +59,19 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState<Draft>(() => loadDraft());
+
+  // Persist seeded defaults immediately so ThemeProvider auto-switch
+  // works even if the user accepts defaults without touching inputs.
+  useEffect(() => {
+    saveDraft(draft);
+    if (draft.sleep_goal_time) {
+      localStorage.setItem("sleep_goal_time", draft.sleep_goal_time);
+    }
+    if (draft.wake_time) {
+      localStorage.setItem("wake_time", draft.wake_time);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const update = (patch: Partial<Draft>) => {
     const next = { ...draft, ...patch };
