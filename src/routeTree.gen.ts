@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SleepRouteImport } from './routes/sleep'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const SleepRoute = SleepRouteImport.update({
 const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FocusRoute = FocusRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
   '/focus': typeof FocusRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
   '/focus': typeof FocusRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
@@ -68,22 +76,46 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/academics': typeof AcademicsRoute
   '/focus': typeof FocusRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/sleep': typeof SleepRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
+  fullPaths:
+    | '/'
+    | '/academics'
+    | '/focus'
+    | '/onboarding'
+    | '/plan'
+    | '/sleep'
+    | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
-  id: '__root__' | '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
+  to:
+    | '/'
+    | '/academics'
+    | '/focus'
+    | '/onboarding'
+    | '/plan'
+    | '/sleep'
+    | '/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/academics'
+    | '/focus'
+    | '/onboarding'
+    | '/plan'
+    | '/sleep'
+    | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademicsRoute: typeof AcademicsRoute
   FocusRoute: typeof FocusRoute
+  OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
   SleepRoute: typeof SleepRoute
   StatsRoute: typeof StatsRoute
@@ -110,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/plan'
       fullPath: '/plan'
       preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/focus': {
@@ -140,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademicsRoute: AcademicsRoute,
   FocusRoute: FocusRoute,
+  OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
   SleepRoute: SleepRoute,
   StatsRoute: StatsRoute,
