@@ -17,6 +17,7 @@ import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SleepSummaryRouteImport } from './routes/sleep.summary'
 import { Route as SleepQualityRouteImport } from './routes/sleep.quality'
 
 const StatsRoute = StatsRouteImport.update({
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SleepSummaryRoute = SleepSummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => SleepRoute,
+} as any)
 const SleepQualityRoute = SleepQualityRouteImport.update({
   id: '/quality',
   path: '/quality',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
   '/sleep/quality': typeof SleepQualityRoute
+  '/sleep/summary': typeof SleepSummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
   '/sleep/quality': typeof SleepQualityRoute
+  '/sleep/summary': typeof SleepSummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/sleep': typeof SleepRouteWithChildren
   '/stats': typeof StatsRoute
   '/sleep/quality': typeof SleepQualityRoute
+  '/sleep/summary': typeof SleepSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/sleep'
     | '/stats'
     | '/sleep/quality'
+    | '/sleep/summary'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/sleep'
     | '/stats'
     | '/sleep/quality'
+    | '/sleep/summary'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/sleep'
     | '/stats'
     | '/sleep/quality'
+    | '/sleep/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sleep/summary': {
+      id: '/sleep/summary'
+      path: '/summary'
+      fullPath: '/sleep/summary'
+      preLoaderRoute: typeof SleepSummaryRouteImport
+      parentRoute: typeof SleepRoute
+    }
     '/sleep/quality': {
       id: '/sleep/quality'
       path: '/quality'
@@ -216,10 +235,12 @@ declare module '@tanstack/react-router' {
 
 interface SleepRouteChildren {
   SleepQualityRoute: typeof SleepQualityRoute
+  SleepSummaryRoute: typeof SleepSummaryRoute
 }
 
 const SleepRouteChildren: SleepRouteChildren = {
   SleepQualityRoute: SleepQualityRoute,
+  SleepSummaryRoute: SleepSummaryRoute,
 }
 
 const SleepRouteWithChildren = SleepRoute._addFileChildren(SleepRouteChildren)
