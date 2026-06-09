@@ -367,7 +367,12 @@ function ExamsTab() {
 
   const persistPlan = async (next: StudyPlan) => {
     setPlan(next);
-    try { await save({ data: { plan: next } }); } catch {}
+    try {
+      await save({ data: { plan: next } });
+      toast.success("Study plan updated");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   return (
@@ -387,7 +392,39 @@ function ExamsTab() {
               </div>
               <div>
                 <Label>Exam date</Label>
-                <Input type="date" value={form.exam_date} onChange={(e) => setForm({ ...form, exam_date: e.target.value })} />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !form.exam_date && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.exam_date
+                        ? format(new Date(form.exam_date + "T00:00:00"), "PPP")
+                        : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={form.exam_date ? new Date(form.exam_date + "T00:00:00") : undefined}
+                      onSelect={(d) =>
+                        setForm({
+                          ...form,
+                          exam_date: d
+                            ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+                            : "",
+                        })
+                      }
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Exam board</Label>
