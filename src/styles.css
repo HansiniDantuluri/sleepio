@@ -74,8 +74,7 @@
   /* SleepIO — Productivity (daytime) theme */
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  /* #F8F9FA */
-  --background: oklch(0.977 0.001 247);
+  --background: oklch(0.98 0.01 250);
   --foreground: oklch(0.18 0.04 270);
   --surface: oklch(1 0 0);
   --surface-elevated: oklch(0.96 0.012 255);
@@ -117,8 +116,7 @@
 .dark,
 .sleep {
   /* SleepIO — Sleep (nighttime) theme: deep midnight indigo */
-  /* base falls back to #0D0D2B; body uses a navy→purple gradient */
-  --background: oklch(0.16 0.06 280);
+  --background: oklch(0.16 0.04 270);
   --foreground: oklch(0.96 0.01 260);
   --surface: oklch(0.21 0.045 272);
   --surface-elevated: oklch(0.25 0.05 275);
@@ -173,13 +171,4 @@
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
-}
-
-/* Sleep mode: navy → purple gradient on the body */
-html.sleep,
-html.sleep body {
-  background-color: #0D0D2B;
-  background-image: linear-gradient(180deg, #0D0D2B 0%, #1A0A3D 100%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
 }

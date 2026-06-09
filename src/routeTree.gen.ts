@@ -9,226 +9,140 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedStatsRouteImport } from './routes/_authenticated/stats'
-import { Route as AuthenticatedSleepRouteImport } from './routes/_authenticated/sleep'
-import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
-import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/focus'
-import { Route as AuthenticatedAcademicsRouteImport } from './routes/_authenticated/academics'
+import { Route as StatsRouteImport } from './routes/stats'
+import { Route as SleepRouteImport } from './routes/sleep'
+import { Route as PlanRouteImport } from './routes/plan'
+import { Route as FocusRouteImport } from './routes/focus'
+import { Route as AcademicsRouteImport } from './routes/academics'
+import { Route as IndexRouteImport } from './routes/index'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedStatsRoute = AuthenticatedStatsRouteImport.update({
+const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedSleepRoute = AuthenticatedSleepRouteImport.update({
+const SleepRoute = SleepRouteImport.update({
   id: '/sleep',
   path: '/sleep',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({
+const FocusRoute = FocusRouteImport.update({
   id: '/focus',
   path: '/focus',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAcademicsRoute = AuthenticatedAcademicsRouteImport.update({
+const AcademicsRoute = AcademicsRouteImport.update({
   id: '/academics',
   path: '/academics',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
-  '/auth': typeof AuthRoute
-  '/academics': typeof AuthenticatedAcademicsRoute
-  '/focus': typeof AuthenticatedFocusRoute
-  '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/plan': typeof AuthenticatedPlanRoute
-  '/sleep': typeof AuthenticatedSleepRoute
-  '/stats': typeof AuthenticatedStatsRoute
+  '/': typeof IndexRoute
+  '/academics': typeof AcademicsRoute
+  '/focus': typeof FocusRoute
+  '/plan': typeof PlanRoute
+  '/sleep': typeof SleepRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRoute
-  '/academics': typeof AuthenticatedAcademicsRoute
-  '/focus': typeof AuthenticatedFocusRoute
-  '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/plan': typeof AuthenticatedPlanRoute
-  '/sleep': typeof AuthenticatedSleepRoute
-  '/stats': typeof AuthenticatedStatsRoute
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
+  '/academics': typeof AcademicsRoute
+  '/focus': typeof FocusRoute
+  '/plan': typeof PlanRoute
+  '/sleep': typeof SleepRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/_authenticated/academics': typeof AuthenticatedAcademicsRoute
-  '/_authenticated/focus': typeof AuthenticatedFocusRoute
-  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/plan': typeof AuthenticatedPlanRoute
-  '/_authenticated/sleep': typeof AuthenticatedSleepRoute
-  '/_authenticated/stats': typeof AuthenticatedStatsRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
+  '/academics': typeof AcademicsRoute
+  '/focus': typeof FocusRoute
+  '/plan': typeof PlanRoute
+  '/sleep': typeof SleepRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth'
-    | '/academics'
-    | '/focus'
-    | '/onboarding'
-    | '/plan'
-    | '/sleep'
-    | '/stats'
+  fullPaths: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/auth'
-    | '/academics'
-    | '/focus'
-    | '/onboarding'
-    | '/plan'
-    | '/sleep'
-    | '/stats'
-    | '/'
-  id:
-    | '__root__'
-    | '/_authenticated'
-    | '/auth'
-    | '/_authenticated/academics'
-    | '/_authenticated/focus'
-    | '/_authenticated/onboarding'
-    | '/_authenticated/plan'
-    | '/_authenticated/sleep'
-    | '/_authenticated/stats'
-    | '/_authenticated/'
+  to: '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
+  id: '__root__' | '/' | '/academics' | '/focus' | '/plan' | '/sleep' | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  IndexRoute: typeof IndexRoute
+  AcademicsRoute: typeof AcademicsRoute
+  FocusRoute: typeof FocusRoute
+  PlanRoute: typeof PlanRoute
+  SleepRoute: typeof SleepRoute
+  StatsRoute: typeof StatsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/stats': {
-      id: '/_authenticated/stats'
+    '/stats': {
+      id: '/stats'
       path: '/stats'
       fullPath: '/stats'
-      preLoaderRoute: typeof AuthenticatedStatsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/sleep': {
-      id: '/_authenticated/sleep'
+    '/sleep': {
+      id: '/sleep'
       path: '/sleep'
       fullPath: '/sleep'
-      preLoaderRoute: typeof AuthenticatedSleepRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof SleepRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/plan': {
-      id: '/_authenticated/plan'
+    '/plan': {
+      id: '/plan'
       path: '/plan'
       fullPath: '/plan'
-      preLoaderRoute: typeof AuthenticatedPlanRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/onboarding': {
-      id: '/_authenticated/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/focus': {
-      id: '/_authenticated/focus'
+    '/focus': {
+      id: '/focus'
       path: '/focus'
       fullPath: '/focus'
-      preLoaderRoute: typeof AuthenticatedFocusRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof FocusRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/academics': {
-      id: '/_authenticated/academics'
+    '/academics': {
+      id: '/academics'
       path: '/academics'
       fullPath: '/academics'
-      preLoaderRoute: typeof AuthenticatedAcademicsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AcademicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAcademicsRoute: typeof AuthenticatedAcademicsRoute
-  AuthenticatedFocusRoute: typeof AuthenticatedFocusRoute
-  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
-  AuthenticatedSleepRoute: typeof AuthenticatedSleepRoute
-  AuthenticatedStatsRoute: typeof AuthenticatedStatsRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-}
-
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAcademicsRoute: AuthenticatedAcademicsRoute,
-  AuthenticatedFocusRoute: AuthenticatedFocusRoute,
-  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
-  AuthenticatedSleepRoute: AuthenticatedSleepRoute,
-  AuthenticatedStatsRoute: AuthenticatedStatsRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-}
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  IndexRoute: IndexRoute,
+  AcademicsRoute: AcademicsRoute,
+  FocusRoute: FocusRoute,
+  PlanRoute: PlanRoute,
+  SleepRoute: SleepRoute,
+  StatsRoute: StatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

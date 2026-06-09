@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "../../components/app-shell";
-import { LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { AppShell } from "../components/app-shell";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "SleepIO — Sleep smarter, study sharper" },
@@ -18,12 +14,6 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Index() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user } = Route.useRouteContext();
-  const sleepGoal =
-    (typeof localStorage !== "undefined" && localStorage.getItem("sleep_goal_time")) || "22:00";
-
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 5) return "Still up?";
@@ -32,32 +22,12 @@ function Index() {
     return "Good evening";
   })();
 
-  const handleSignOut = async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
-
   return (
-    <AppShell
-      subtitle={`${greeting}${user.email ? ` · ${user.email.split("@")[0]}` : ""}`}
-      title="SleepIO"
-      action={
-        <button
-          type="button"
-          onClick={handleSignOut}
-          aria-label="Sign out"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
-      }
-    >
+    <AppShell subtitle={greeting} title="SleepIO">
       <div className="space-y-4">
         <PlaceholderCard
           eyebrow="Tonight"
-          title={`Wind down at ${formatTime(sleepGoal)}`}
+          title="Wind down at 10:30 PM"
           body="Your personalized sleep plan will appear here once Phase 6 ships."
         />
         <PlaceholderCard
@@ -73,14 +43,6 @@ function Index() {
       </div>
     </AppShell>
   );
-}
-
-function formatTime(hhmm: string): string {
-  const [hStr, m] = hhmm.split(":");
-  let h = Number(hStr);
-  const period = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${period}`;
 }
 
 function PlaceholderCard({ eyebrow, title, body }: { eyebrow: string; title: string; body: string }) {
