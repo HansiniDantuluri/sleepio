@@ -300,6 +300,31 @@ function Index() {
           <ActionButton to="/wind-down" label="Wind Down" tone="muted" />
         </div>
 
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => navigate({ to: "/sleep" })}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[oklch(0.25_0.08_270)] px-6 py-4 text-sm font-semibold text-white"
+        >
+          <Moon className="h-4 w-4" /> Sleep Now
+        </motion.button>
+
+        {studyBlocks.length > 0 && (
+          <div className="rounded-3xl border border-border bg-surface p-4">
+            <h2 className="mb-2 font-display text-lg font-semibold text-foreground">Today's study blocks</h2>
+            <div className="space-y-2">
+              {studyBlocks.map((b, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-2xl bg-muted px-3 py-2">
+                  <span className="text-lg">📚</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{b.subject}</p>
+                    <p className="text-[11px] text-muted-foreground">{b.minutes}m · {b.focus}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <StatsCard />
       </div>
     </AppShell>
