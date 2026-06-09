@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles, Clock, X, AlertTriangle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "../components/app-shell";
 import { getCoachMessage } from "../lib/api/coach.functions";
+import { getActiveSchedule, saveActiveSchedule } from "../lib/api/schedule.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
