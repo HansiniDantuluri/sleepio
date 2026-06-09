@@ -45,13 +45,6 @@ const LENGTHS = [25, 45, 60] as const;
 
 type Phase = "select" | "running" | "complete";
 
-function plantStage(xp: number) {
-  if (xp >= 150) return { emoji: "🌳", label: "Mature tree" };
-  if (xp >= 75) return { emoji: "🍀", label: "Lucky clover" };
-  if (xp >= 25) return { emoji: "🌿", label: "Sapling" };
-  return { emoji: "🌱", label: "Seedling" };
-}
-
 function milestone(pct: number): string | null {
   if (pct >= 1) return "Crushed it! 🏆";
   if (pct >= 0.75) return "Almost done ⚡";
