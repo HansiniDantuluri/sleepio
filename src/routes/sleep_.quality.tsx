@@ -7,7 +7,7 @@ import {
   saveSleepQuality,
 } from "../lib/api/sleep.functions";
 
-export const Route = createFileRoute("/sleep/quality")({
+export const Route = createFileRoute("/sleep_/quality")({
   head: () => ({ meta: [{ title: "How did you sleep? — SleepIO" }] }),
   component: SleepQualityPage,
 });
