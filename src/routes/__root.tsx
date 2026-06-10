@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../components/theme-provider";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -141,6 +142,61 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  // Register push service worker (production only)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+    if (!import.meta.env.PROD) return;
+    const host = window.location.hostname;
+    const isPreview =
+      host.startsWith("id-preview--") ||
+      host.startsWith("preview--") ||
+      host.endsWith(".lovableproject.com") ||
+      host.endsWith(".lovableproject-dev.com");
+    if (isPreview || window.self !== window.top) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
+  // Auth + onboarding redirect guard
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+
+    const decide = async () => {
+      const path = window.location.pathname;
+      // Allow these routes regardless of auth state
+      if (path.startsWith("/auth") || path.startsWith("/onboarding")) return;
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!data.session) {
+        router.navigate({ to: "/auth" });
+        return;
+      }
+      // Logged in — check onboarded_at on profiles
+      try {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("onboarded_at" as never)
+          .eq("id", data.session.user.id)
+          .maybeSingle();
+        const onboardedAt = (prof as { onboarded_at?: string | null } | null)?.onboarded_at;
+        if (!onboardedAt) router.navigate({ to: "/onboarding" });
+      } catch {
+        /* fail open — let the user through */
+      }
+    };
+
+    void decide();
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") void decide();
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
