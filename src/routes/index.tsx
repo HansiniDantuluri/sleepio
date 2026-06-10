@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles, Clock, X, AlertTriangle, Loader2 } from "lucide-react";
+import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles, Clock, X, AlertTriangle, Loader2, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "../components/app-shell";
 import { getCoachMessage } from "../lib/api/coach.functions";
@@ -427,6 +427,17 @@ function Index() {
 
   return (
     <AppShell subtitle={greeting} title="SleepIO">
+      <Link
+        to="/settings"
+        aria-label="Settings"
+        className="fixed right-4 top-4 z-40 flex h-9 w-9 items-center justify-center rounded-full bg-surface/80 backdrop-blur transition-opacity hover:opacity-80"
+        style={{ width: 36, height: 36 }}
+      >
+        <Settings
+          className="h-[18px] w-[18px]"
+          style={{ color: (now.getHours() >= 20 || now.getHours() < 6) ? "rgba(255,255,255,0.9)" : "#6b7280" }}
+        />
+      </Link>
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
       <SleepOverlay enabled={overlayEnabled} />
