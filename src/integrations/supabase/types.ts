@@ -198,6 +198,7 @@ export type Database = {
           full_name: string | null
           grade: number | null
           id: string
+          onboarded_at: string | null
           onboarding_completed: boolean
           sleep_goal_time: string | null
           theme_mode: string
@@ -211,6 +212,7 @@ export type Database = {
           full_name?: string | null
           grade?: number | null
           id: string
+          onboarded_at?: string | null
           onboarding_completed?: boolean
           sleep_goal_time?: string | null
           theme_mode?: string
@@ -224,6 +226,7 @@ export type Database = {
           full_name?: string | null
           grade?: number | null
           id?: string
+          onboarded_at?: string | null
           onboarding_completed?: boolean
           sleep_goal_time?: string | null
           theme_mode?: string
