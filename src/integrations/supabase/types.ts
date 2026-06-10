@@ -44,6 +44,77 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcard_decks: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          back: string
+          created_at: string
+          deck_id: string
+          ease_factor: number
+          front: string
+          id: string
+          next_review: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back: string
+          created_at?: string
+          deck_id: string
+          ease_factor?: number
+          front: string
+          id?: string
+          next_review?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back?: string
+          created_at?: string
+          deck_id?: string
+          ease_factor?: number
+          front?: string
+          id?: string
+          next_review?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       focus_sessions: {
         Row: {
           actual_minutes: number
@@ -242,6 +313,39 @@ export type Database = {
         }
         Relationships: []
       }
+      study_notes: {
+        Row: {
+          ai_feedback: string | null
+          blurt_text: string
+          created_at: string
+          id: string
+          subject: string
+          tool: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          blurt_text: string
+          created_at?: string
+          id?: string
+          subject: string
+          tool?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          blurt_text?: string
+          created_at?: string
+          id?: string
+          subject?: string
+          tool?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_plans: {
         Row: {
           created_at: string
@@ -299,6 +403,7 @@ export type Database = {
       summative_exams: {
         Row: {
           created_at: string
+          duration_min: number | null
           exam_board: string
           exam_date: string
           id: string
@@ -309,6 +414,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          duration_min?: number | null
           exam_board: string
           exam_date: string
           id?: string
@@ -319,6 +425,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          duration_min?: number | null
           exam_board?: string
           exam_date?: string
           id?: string
