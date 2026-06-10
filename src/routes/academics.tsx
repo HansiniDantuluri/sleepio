@@ -216,7 +216,7 @@ function IATab() {
 
       {items.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No IAs yet. Add one to start tracking due dates.
+          No IAs added yet — tap + to add your first one.
         </div>
       )}
 
@@ -464,7 +464,7 @@ function ExamsTab() {
         <div className="flex min-w-full gap-2 pb-2">
           {exams.length === 0 && (
             <div className="w-full rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-              No exams scheduled yet.
+              No exams added yet — tap + to add your first exam.
             </div>
           )}
           {exams.map((e) => (
