@@ -232,7 +232,7 @@ function Flashcards() {
       )}
       {decks.length === 0 && !adding && (
         <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No decks yet. Create one to start studying.
+          No decks yet — create your first flashcard deck.
         </div>
       )}
       <div className="space-y-2">
