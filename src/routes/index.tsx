@@ -12,6 +12,8 @@ import { listExams, listIAs } from "../lib/api/academics.functions";
 import { getFocusStats } from "../lib/api/focus.functions";
 import { NotificationBanner, type BannerData } from "../components/notification-banner";
 import { SleepNudgeBanner, PushPermissionCard, useSleepNudge } from "../components/sleep-nudge";
+import { SleepOverlay } from "../components/sleep-overlay";
+import { getSettings } from "../lib/api/settings.functions";
 import { getDailyQuote } from "../data/quotes";
 
 export const Route = createFileRoute("/")({
@@ -68,6 +70,20 @@ function Index() {
   const fetchFocusStats = useServerFn(getFocusStats);
   const [banner, setBanner] = useState<BannerData | null>(null);
   const { nudge, dismiss: dismissNudge, permissionPrompt, allowPermission, denyPermission } = useSleepNudge();
+  const fetchSettings = useServerFn(getSettings);
+  const [overlayEnabled, setOverlayEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSettings()
+      .then((res) => {
+        if (cancelled) return;
+        // Default: ON. Disabled only when explicitly set to false.
+        setOverlayEnabled(res.settings.app_blocking !== false);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [fetchSettings]);
 
   // Notification banner check (runs once on mount)
   useEffect(() => {
@@ -413,6 +429,7 @@ function Index() {
     <AppShell subtitle={greeting} title="SleepIO">
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
+      <SleepOverlay enabled={overlayEnabled} />
       <div className="space-y-6">
         {now.getHours() >= 18 && (
           <motion.p
@@ -455,7 +472,15 @@ function Index() {
           </p>
         </motion.div>
 
-        <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+        {activeBlocks === null || activeBlocks.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-surface/40 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              No schedule yet — tap <span className="font-semibold text-foreground">Plan My Day</span> to build your day.
+            </p>
+          </div>
+        ) : (
+          <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+        )}
 
         <ScheduleSection
           now={now}
