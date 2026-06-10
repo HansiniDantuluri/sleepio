@@ -472,7 +472,15 @@ function Index() {
           </p>
         </motion.div>
 
-        <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+        {activeBlocks === null || activeBlocks.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-surface/40 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              No schedule yet — tap <span className="font-semibold text-foreground">Plan My Day</span> to build your day.
+            </p>
+          </div>
+        ) : (
+          <Timeline now={now} sleepHour={sleep.h} sleepMin={sleep.m} />
+        )}
 
         <ScheduleSection
           now={now}
