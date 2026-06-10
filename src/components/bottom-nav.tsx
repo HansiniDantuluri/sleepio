@@ -26,7 +26,7 @@ export function BottomNav() {
             <li key={to} className="flex-1">
               <Link
                 to={to}
-                className="relative flex flex-col items-center justify-center gap-1 px-2 py-2.5 text-[10px] font-medium tracking-wide"
+                className="relative flex min-h-[44px] flex-col items-center justify-center gap-1 px-2 py-2.5 text-[10px] font-medium tracking-wide"
               >
                 <span
                   className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-colors ${
