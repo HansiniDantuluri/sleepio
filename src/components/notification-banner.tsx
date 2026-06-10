@@ -50,27 +50,36 @@ export function NotificationBanner({
               navigate({ to: banner.to });
               onDismiss();
             }}
-            className={
-              banner.sleepMode
-                ? "flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-3 pl-4 text-white shadow-xl backdrop-blur-xl"
-                : "flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-white p-3 pl-4 text-foreground shadow-lg"
-            }
-            style={{ borderLeft: `4px solid ${BORDER[banner.type]}` }}
+            className="flex cursor-pointer items-center gap-3 rounded-2xl shadow-xl p-3 pl-4"
+            style={{
+              borderLeft: `4px solid ${BORDER[banner.type]}`,
+              background: banner.sleepMode ? "rgba(15, 10, 40, 0.95)" : "#ffffff",
+              color: banner.sleepMode ? "#ffffff" : "#1a1a1a",
+              backdropFilter: banner.sleepMode ? "blur(12px)" : undefined,
+              border: banner.sleepMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
+              borderLeft: `4px solid ${BORDER[banner.type]}`,
+            }}
             role="button"
             tabIndex={0}
           >
-            <p className="flex-1 text-sm font-medium leading-snug">{banner.message}</p>
+            <p
+              className="flex-1 leading-snug"
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: banner.sleepMode ? "#ffffff" : "#1a1a1a",
+              }}
+            >
+              {banner.message}
+            </p>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onDismiss();
               }}
-              className={
-                banner.sleepMode
-                  ? "shrink-0 rounded-full p-1 text-white/70 hover:bg-white/10 hover:text-white"
-                  : "shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              }
+              className="shrink-0 rounded-full p-1 hover:opacity-80"
+              style={{ color: banner.sleepMode ? "rgba(255,255,255,0.8)" : "#4a4a4a" }}
               aria-label="Dismiss"
             >
               <X className="h-4 w-4" />
