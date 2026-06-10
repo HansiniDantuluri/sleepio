@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BottomNav } from "./bottom-nav";
 import { ThemeToggle } from "./theme-toggle";
+import { LunaChatbot } from "./luna-chatbot";
 
 export function AppShell({
   children,
@@ -34,6 +35,7 @@ export function AppShell({
         <main className="flex-1 px-5 pb-28 pt-4">{children}</main>
       </div>
       <BottomNav />
+      <LunaChatbot />
     </div>
   );
 }
