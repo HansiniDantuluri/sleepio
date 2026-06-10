@@ -12,6 +12,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
+import { ExamModeTab } from "../components/exam-mode";
 import { Calendar } from "../components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import {
@@ -89,15 +90,19 @@ function AcademicsPage() {
   return (
     <AppShell subtitle="IB & IGCSE" title="Academics">
       <Tabs defaultValue="ia" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="ia">Internal Assessments</TabsTrigger>
           <TabsTrigger value="exams">Summative Exams</TabsTrigger>
+          <TabsTrigger value="exam-mode">Exam Mode</TabsTrigger>
         </TabsList>
         <TabsContent value="ia" className="mt-4">
           <IATab />
         </TabsContent>
         <TabsContent value="exams" className="mt-4">
           <ExamsTab />
+        </TabsContent>
+        <TabsContent value="exam-mode" className="mt-4">
+          <ExamModeTab />
         </TabsContent>
       </Tabs>
     </AppShell>

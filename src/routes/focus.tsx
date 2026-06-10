@@ -8,6 +8,10 @@ import { z } from "zod";
 
 import { useTheme } from "../components/theme-provider";
 import { Button } from "../components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
+import { StudyTools } from "../components/study-tools";
+import { SleepFactCard } from "../components/sleep-fact-card";
+import { randomFact } from "../data/sleep-facts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -218,7 +222,13 @@ function FocusPage() {
       <main className="mx-auto flex min-h-[calc(100dvh-80px)] max-w-xl flex-col items-center justify-center px-5 pb-10">
         {phase === "select" && (
           <div className="w-full">
-            <p className="text-center text-sm text-muted-foreground">Choose your focus length</p>
+            <Tabs defaultValue="timer" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="timer">Focus Timer</TabsTrigger>
+                <TabsTrigger value="tools">Study Tools</TabsTrigger>
+              </TabsList>
+              <TabsContent value="timer" className="mt-4">
+                <p className="text-center text-sm text-muted-foreground">Choose your focus length</p>
             <div className="mt-4 grid grid-cols-3 gap-3">
               {LENGTHS.map((m) => (
                 <button
@@ -245,6 +255,11 @@ function FocusPage() {
             <p className="mt-6 text-center text-xs text-muted-foreground">
               Total XP earned: <span className="font-semibold text-foreground">{totalXp}</span>
             </p>
+              </TabsContent>
+              <TabsContent value="tools" className="mt-4">
+                <StudyTools />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
 
@@ -275,6 +290,12 @@ function FocusPage() {
           />
         )}
       </main>
+
+      {phase === "complete" && (
+        <div className="mx-auto -mt-4 mb-6 max-w-xl px-5">
+          <SleepFactCard fact={randomFact()} />
+        </div>
+      )}
 
       {/* App Blocking pill */}
       {phase === "running" && (
