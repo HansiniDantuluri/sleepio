@@ -429,6 +429,7 @@ function Index() {
     <AppShell subtitle={greeting} title="SleepIO">
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
+      <SleepOverlay enabled={overlayEnabled} />
       <div className="space-y-6">
         {now.getHours() >= 18 && (
           <motion.p
