@@ -35,7 +35,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
     if (data.curriculum) patch.curriculum = data.curriculum;
     const { error } = await supabase
       .from("profiles")
-      .update(patch)
+      .update(patch as never)
       .eq("id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
