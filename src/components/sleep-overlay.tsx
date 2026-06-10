@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Moon } from "lucide-react";
 import { getActiveSleepSession, getLatestSleepSession } from "../lib/api/sleep.functions";
+import { getSettings } from "../lib/api/settings.functions";
 
 const DISMISS_KEY = "sleep_overlay_dismissed_at";
 const DISMISS_MS = 30 * 60 * 1000;
@@ -38,16 +39,31 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
   const navigate = useNavigate();
   const fetchActive = useServerFn(getActiveSleepSession);
   const fetchLatest = useServerFn(getLatestSleepSession);
+  const fetchSettings = useServerFn(getSettings);
   const [show, setShow] = useState(false);
 
   const check = useCallback(async () => {
     if (!enabled) { setShow(false); return; }
     const now = new Date();
     const hour = now.getHours();
-    // Don't intrude during the day or after 3am
-    if (hour >= 3 && hour < 18) { setShow(false); return; }
+    // Hide between 3am and noon — assume they slept.
+    if (hour >= 3 && hour < 12) { setShow(false); return; }
 
-    const [sh, sm] = parseHHMM(localStorage.getItem("sleep_goal_time"), [22, 0]);
+    // Read sleep_goal_time: localStorage first, then Supabase profile fallback.
+    let stored = localStorage.getItem("sleep_goal_time");
+    if (!stored) {
+      try {
+        const res = await fetchSettings();
+        const fromDb = res?.profile?.sleep_goal_time ?? null;
+        if (fromDb) {
+          stored = fromDb.slice(0, 5);
+          localStorage.setItem("sleep_goal_time", stored);
+        }
+      } catch {
+        /* offline/unauth — fall through to default */
+      }
+    }
+    const [sh, sm] = parseHHMM(stored, [22, 0]);
     const target = new Date(now);
     target.setHours(sh, sm, 0, 0);
     // If goal is e.g. 22:00 and it's already 1am, target was yesterday — still "passed".
@@ -74,7 +90,7 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
       /* unauth/offline — still show */
     }
     setShow(true);
-  }, [enabled, fetchActive, fetchLatest]);
+  }, [enabled, fetchActive, fetchLatest, fetchSettings]);
 
   useEffect(() => {
     void check();
@@ -97,7 +113,7 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[80] flex items-center justify-center px-6"
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-6"
           style={{ background: "rgba(0,0,0,0.85)" }}
           role="dialog"
           aria-modal="true"
