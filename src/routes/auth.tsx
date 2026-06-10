@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { completeOnboarding } from "../lib/api/onboarding.functions";
@@ -22,6 +23,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const finishOnboarding = useServerFn(completeOnboarding);
 
   const handleSignedIn = async () => {
@@ -64,21 +67,48 @@ function AuthPage() {
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
+        // If no session was returned, email confirmation is required.
+        // Switch to sign-in mode and show a clear success message instead of
+        // silently waiting for an auth event that won't fire.
+        if (!data.session) {
+          setMode("signin");
+          setInfo("Account created! You can now log in.");
+          setEmail(cleanEmail);
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
         if (error) throw error;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const raw = err instanceof Error ? err.message : String(err);
+      const lower = raw.toLowerCase();
+      if (
+        lower.includes("invalid login") ||
+        lower.includes("invalid credentials") ||
+        lower.includes("invalid_credentials")
+      ) {
+        setError("Incorrect email or password. Try again or use Google sign in.");
+      } else if (lower.includes("email not confirmed")) {
+        setError("Please confirm your email from the link we sent, then sign in.");
+      } else if (lower.includes("already registered") || lower.includes("user already")) {
+        setError("An account with this email already exists. Try signing in instead.");
+      } else {
+        setError(raw || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -148,15 +178,31 @@ function AuthPage() {
             <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Password
             </span>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-2xl border border-border bg-surface px-4 py-3 pr-12 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </label>
+
+          {info && (
+            <p className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground">
+              {info}
+            </p>
+          )}
 
           {error && (
             <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

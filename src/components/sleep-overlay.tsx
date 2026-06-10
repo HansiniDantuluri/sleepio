@@ -102,7 +102,7 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-sm text-center">
+          <div className="flex w-full max-w-sm flex-col items-center text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
               <Moon className="h-8 w-8 text-white" />
             </div>
@@ -112,20 +112,38 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
             >
               It's sleep time{name ? `, ${name}` : ""}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
               Put your phone down and let your brain recover.
             </p>
             <button
+              type="button"
               onClick={() => navigate({ to: "/sleep" })}
-              className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white text-base font-semibold"
-              style={{ color: "#0f0a28", minHeight: 44 }}
+              className="mt-10 w-full rounded-full border-0 shadow-2xl transition active:scale-[0.98]"
+              style={{
+                background: "#ffffff",
+                color: "#0f0a28",
+                fontSize: "18px",
+                fontWeight: 700,
+                lineHeight: 1,
+                paddingTop: "20px",
+                paddingBottom: "20px",
+                minHeight: 56,
+                letterSpacing: "0.01em",
+              }}
             >
               Sleep Now
             </button>
             <button
+              type="button"
               onClick={dismiss30}
-              className="mt-4 text-xs underline"
-              style={{ color: "rgba(255,255,255,0.6)", minHeight: 44 }}
+              className="mt-5 underline-offset-4 hover:underline"
+              style={{
+                background: "transparent",
+                color: "rgba(255,255,255,0.7)",
+                fontSize: "13px",
+                minHeight: 44,
+                padding: "10px 16px",
+              }}
             >
               Dismiss for 30 min
             </button>
