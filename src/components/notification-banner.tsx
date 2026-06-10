@@ -52,7 +52,6 @@ export function NotificationBanner({
             }}
             className="flex cursor-pointer items-center gap-3 rounded-2xl shadow-xl p-3 pl-4"
             style={{
-              borderLeft: `4px solid ${BORDER[banner.type]}`,
               background: banner.sleepMode ? "rgba(15, 10, 40, 0.95)" : "#ffffff",
               color: banner.sleepMode ? "#ffffff" : "#1a1a1a",
               backdropFilter: banner.sleepMode ? "blur(12px)" : undefined,
