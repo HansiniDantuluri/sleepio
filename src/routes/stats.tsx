@@ -269,6 +269,17 @@ function StatsPage() {
   return (
     <AppShell subtitle="Last 7 days" title="Your Stats">
       <div className="space-y-6">
+        {!loading && sessions.length === 0 && (
+          <div className="rounded-3xl border border-dashed border-border bg-surface/40 p-6 text-center">
+            <p className="text-sm text-muted-foreground">No sleep tracked yet — start tonight.</p>
+            <a
+              href="/sleep"
+              className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Go to Sleep
+            </a>
+          </div>
+        )}
         {/* Streak */}
         <div className="rounded-3xl border border-border bg-surface p-5 text-center">
           <motion.div
