@@ -44,15 +44,30 @@ function formatTime(h: number, m: number) {
   return `${hh}:${m.toString().padStart(2, "0")} ${period}`;
 }
 
-function sendWebPush(title: string, body: string, to: string) {
+async function sendWebPush(title: string, body: string, to: string) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
+  const opts: NotificationOptions = {
+    body,
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    data: { url: to },
+    tag: "sleepio-nudge",
+  };
+  // Prefer service worker so click handling works when app is closed.
+  if ("serviceWorker" in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.showNotification(title, opts);
+        return;
+      }
+    } catch {
+      /* fall back to ctor */
+    }
+  }
   try {
-    const n = new Notification(title, {
-      body,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-    });
+    const n = new Notification(title, opts);
     n.onclick = () => {
       window.focus();
       window.location.href = to;
@@ -179,7 +194,12 @@ export function useSleepNudge() {
         if (cancelled || !candidate) return;
         markSent(candidate.type);
         setNudge(candidate);
-        sendWebPush("SleepIO", candidate.message, candidate.to);
+        const titleByType: Record<NudgeType, string> = {
+          pre: "SleepIO",
+          at: "SleepIO — Sleep Time",
+          late: "SleepIO — Still Awake?",
+        };
+        void sendWebPush(titleByType[candidate.type], candidate.message, candidate.to);
       } finally {
         checkingRef.current = false;
       }
