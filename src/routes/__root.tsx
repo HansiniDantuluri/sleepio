@@ -12,7 +12,6 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../components/theme-provider";
-import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -79,11 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "SleepIO" },
+      { name: "description", content: "Plan your day. Protect your sleep. The smart schedule and sleep manager built for IB and IGCSE students." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "SleepIO" },
+      { property: "og:description", content: "Plan your day. Protect your sleep. The smart schedule and sleep manager built for IB and IGCSE students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -91,6 +90,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "SleepIO" },
+      { name: "twitter:title", content: "SleepIO" },
+      { name: "twitter:description", content: "Plan your day. Protect your sleep. The smart schedule and sleep manager built for IB and IGCSE students." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/vwNxXfnb6OTA2OU7ssKKRsG4sn72/social-images/social-1781088326755-1000_F_528325315_L2eibAMD7N27oWSgVKOFbc9TpG3oBFfJ.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/vwNxXfnb6OTA2OU7ssKKRsG4sn72/social-images/social-1781088326755-1000_F_528325315_L2eibAMD7N27oWSgVKOFbc9TpG3oBFfJ.webp" },
     ],
     links: [
       {
@@ -142,61 +145,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
-  // Register push service worker (production only)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!("serviceWorker" in navigator)) return;
-    if (!import.meta.env.PROD) return;
-    const host = window.location.hostname;
-    const isPreview =
-      host.startsWith("id-preview--") ||
-      host.startsWith("preview--") ||
-      host.endsWith(".lovableproject.com") ||
-      host.endsWith(".lovableproject-dev.com");
-    if (isPreview || window.self !== window.top) return;
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  }, []);
-
-  // Auth + onboarding redirect guard
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    let cancelled = false;
-
-    const decide = async () => {
-      const path = window.location.pathname;
-      // Allow these routes regardless of auth state
-      if (path.startsWith("/auth") || path.startsWith("/onboarding")) return;
-      const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
-      if (!data.session) {
-        router.navigate({ to: "/auth" });
-        return;
-      }
-      // Logged in — check onboarded_at on profiles
-      try {
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("onboarded_at" as never)
-          .eq("id", data.session.user.id)
-          .maybeSingle();
-        const onboardedAt = (prof as { onboarded_at?: string | null } | null)?.onboarded_at;
-        if (!onboardedAt) router.navigate({ to: "/onboarding" });
-      } catch {
-        /* fail open — let the user through */
-      }
-    };
-
-    void decide();
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") void decide();
-    });
-    return () => {
-      cancelled = true;
-      sub.subscription.unsubscribe();
-    };
-  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
