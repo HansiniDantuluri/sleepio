@@ -44,7 +44,7 @@ export const getLunaContext = createServerFn({ method: "GET" })
         .maybeSingle(),
       supabase
         .from("internal_assessments")
-        .select("subject, title, due_date")
+        .select("subject, ia_type, due_date")
         .eq("user_id", userId)
         .gte("due_date", nowIso.slice(0, 10))
         .lte("due_date", in14.slice(0, 10))
@@ -75,7 +75,7 @@ export const getLunaContext = createServerFn({ method: "GET" })
     const upcomingIAs = (iasRes.data ?? []).map((ia) => {
       const due = new Date(ia.due_date);
       const daysAway = Math.max(0, Math.ceil((due.getTime() - today.getTime()) / 86400_000));
-      return { subject: ia.subject, title: ia.title ?? null, due_date: ia.due_date, daysAway };
+      return { subject: ia.subject, title: ia.ia_type ?? null, due_date: ia.due_date, daysAway };
     });
 
     const tasks = (scheduleRes.data?.tasks as unknown[]) ?? [];
