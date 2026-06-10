@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { completeOnboarding } from "../lib/api/onboarding.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -20,15 +22,43 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const finishOnboarding = useServerFn(completeOnboarding);
+
+  const handleSignedIn = async () => {
+    // If an onboarding draft exists, persist it + mark onboarded.
+    let draft: Record<string, unknown> = {};
+    try {
+      draft = JSON.parse(localStorage.getItem("onboarding_draft") || "{}");
+    } catch {
+      /* ignore */
+    }
+    if (draft && Object.keys(draft).length > 0) {
+      try {
+        await finishOnboarding({
+          data: {
+            sleep_goal_time: typeof draft.sleep_goal_time === "string" ? draft.sleep_goal_time : undefined,
+            wake_time: typeof draft.wake_time === "string" ? draft.wake_time : undefined,
+            curriculum: draft.curriculum === "IB" || draft.curriculum === "IGCSE" ? draft.curriculum : undefined,
+            full_name: typeof draft.name === "string" ? draft.name : undefined,
+          },
+        });
+        localStorage.removeItem("onboarding_draft");
+      } catch {
+        /* ignore — root guard will redirect to /onboarding if still not marked */
+      }
+    }
+    navigate({ to: "/" });
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+      if (data.session) void handleSignedIn();
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/" });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) void handleSignedIn();
     });
     return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const handleEmail = async (e: React.FormEvent) => {
