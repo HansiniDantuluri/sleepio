@@ -8,6 +8,9 @@ import { AppShell } from "../components/app-shell";
 import { getCoachMessage } from "../lib/api/coach.functions";
 import { getActiveSchedule, saveActiveSchedule } from "../lib/api/schedule.functions";
 import { getActiveStudyPlan } from "../lib/api/academics.functions";
+import { listExams, listIAs } from "../lib/api/academics.functions";
+import { getFocusStats } from "../lib/api/focus.functions";
+import { NotificationBanner, type BannerData } from "../components/notification-banner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,6 +61,155 @@ function Index() {
   const [studyBlocks, setStudyBlocks] = useState<{ subject: string; minutes: number; focus: string }[]>([]);
   const fetchStudyPlan = useServerFn(getActiveStudyPlan);
   const navigate = useNavigate();
+  const fetchExams = useServerFn(listExams);
+  const fetchIAs = useServerFn(listIAs);
+  const fetchFocusStats = useServerFn(getFocusStats);
+  const [banner, setBanner] = useState<BannerData | null>(null);
+
+  // Notification banner check (runs once on mount)
+  useEffect(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      if (cancelled) return;
+      // Don't show if user is typing in an input
+      const active = document.activeElement;
+      if (
+        active &&
+        (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || (active as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
+      const nowDate = new Date();
+      const dayKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}-${nowDate.getDate()}`;
+      const sleepMode = nowDate.getHours() >= 20 || nowDate.getHours() < 6;
+
+      const wasShown = (type: string) =>
+        localStorage.getItem(`banner_${dayKey}_${type}`) === "1";
+      const markShown = (type: string) =>
+        localStorage.setItem(`banner_${dayKey}_${type}`, "1");
+
+      const daysUntil = (iso: string) => {
+        const target = new Date(iso);
+        target.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return Math.round((target.getTime() - today.getTime()) / 86400000);
+      };
+
+      let candidate: BannerData | null = null;
+
+      // 1. EXAM REMINDER (highest priority)
+      try {
+        const { exams } = await fetchExams();
+        const upcoming = (exams ?? [])
+          .map((e: { subject: string; exam_date: string }) => ({ ...e, d: daysUntil(e.exam_date) }))
+          .filter((e) => e.d >= 0)
+          .sort((a, b) => a.d - b.d);
+        const e = upcoming[0];
+        if (e && !wasShown("exam")) {
+          if (e.d <= 7) {
+            candidate = {
+              type: "exam",
+              message: `⚡ ${e.subject} exam in ${e.d} day${e.d === 1 ? "" : "s"} — final revision time`,
+              to: "/academics",
+            };
+          } else if (e.d <= 30) {
+            candidate = {
+              type: "exam",
+              message: `📅 ${e.subject} exam in ${e.d} days — your prep plan is ready`,
+              to: "/academics",
+            };
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+
+      // 2. IA DEADLINE
+      if (!candidate) {
+        try {
+          const { ias } = await fetchIAs();
+          const upcoming = (ias ?? [])
+            .map((i: { subject: string; due_date: string }) => ({ ...i, d: daysUntil(i.due_date) }))
+            .filter((i) => i.d >= 0)
+            .sort((a, b) => a.d - b.d);
+          const i = upcoming[0];
+          if (i && !wasShown("ia")) {
+            if (i.d <= 1) {
+              candidate = {
+                type: "ia",
+                message: `🚨 ${i.subject} IA due tomorrow — final push!`,
+                to: "/academics",
+              };
+            } else if (i.d <= 3) {
+              candidate = {
+                type: "ia",
+                message: `⚠️ ${i.subject} IA due in ${i.d} days — stay on track`,
+                to: "/academics",
+              };
+            } else if (i.d <= 7) {
+              candidate = {
+                type: "ia",
+                message: `📝 ${i.subject} IA due in ${i.d} days — time to start`,
+                to: "/academics",
+              };
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+
+      // 3. SLEEP REMINDER
+      if (!candidate && !wasShown("sleep")) {
+        const [sh, sm] = parseHHMM(localStorage.getItem("sleep_goal_time"), [22, 0]);
+        const mins = minutesUntil(sh, sm, nowDate);
+        if (mins <= 30 && mins > 0) {
+          candidate = {
+            type: "sleep",
+            message: `😴 ${mins} min until sleep time — wrap up now`,
+            to: "/wind-down",
+          };
+        } else if (mins <= 60 && mins > 0) {
+          candidate = {
+            type: "sleep",
+            message: `🌙 Sleep goal in ${mins} min — start winding down`,
+            to: "/wind-down",
+          };
+        }
+      }
+
+      // 4. FOCUS NUDGE
+      if (!candidate && !wasShown("focus")) {
+        const h = nowDate.getHours();
+        if (h >= 16 && h < 20) {
+          try {
+            const stats = await fetchFocusStats();
+            if ((stats?.todayCount ?? 0) === 0) {
+              candidate = {
+                type: "focus",
+                message: "🎯 No focus session yet today — even 25 min helps",
+                to: "/focus",
+              };
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+
+      if (cancelled || !candidate) return;
+      markShown(candidate.type);
+      candidate.sleepMode = sleepMode;
+      setBanner(candidate);
+    }, 2000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -256,6 +408,7 @@ function Index() {
 
   return (
     <AppShell subtitle={greeting} title="SleepIO">
+      <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <div className="space-y-6">
         <SleepRing
           progress={progress}
