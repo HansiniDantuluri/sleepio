@@ -333,11 +333,11 @@ function SettingsPage() {
           )}
         </Section>
 
-        <Section title="Focus">
+        <Section title="Sleep enforcement">
           <ToggleRow
-            label="App blocking"
-            desc="Block distracting apps during Focus Mode"
-            checked={settings.app_blocking}
+            label="Sleep enforcement overlay"
+            desc="Show a full-screen reminder once your sleep time has passed"
+            checked={settings.app_blocking !== false}
             onChange={(v) => persistSettings({ app_blocking: v })}
           />
         </Section>
