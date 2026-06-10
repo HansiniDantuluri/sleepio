@@ -11,6 +11,8 @@ import { getActiveStudyPlan } from "../lib/api/academics.functions";
 import { listExams, listIAs } from "../lib/api/academics.functions";
 import { getFocusStats } from "../lib/api/focus.functions";
 import { NotificationBanner, type BannerData } from "../components/notification-banner";
+import { SleepNudgeBanner, PushPermissionCard, useSleepNudge } from "../components/sleep-nudge";
+import { getDailyQuote } from "../data/quotes";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,6 +67,7 @@ function Index() {
   const fetchIAs = useServerFn(listIAs);
   const fetchFocusStats = useServerFn(getFocusStats);
   const [banner, setBanner] = useState<BannerData | null>(null);
+  const { nudge, dismiss: dismissNudge, permissionPrompt, allowPermission, denyPermission } = useSleepNudge();
 
   // Notification banner check (runs once on mount)
   useEffect(() => {
@@ -409,7 +412,27 @@ function Index() {
   return (
     <AppShell subtitle={greeting} title="SleepIO">
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
+      <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
       <div className="space-y-6">
+        {now.getHours() >= 18 && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            className="text-xs italic text-muted-foreground"
+          >
+            Hey {(() => {
+              try {
+                return JSON.parse(localStorage.getItem("onboarding_draft") || "{}").name || "friend";
+              } catch {
+                return "friend";
+              }
+            })()} — {getDailyQuote(now)}
+          </motion.p>
+        )}
+        {permissionPrompt && (
+          <PushPermissionCard onAllow={allowPermission} onDeny={denyPermission} />
+        )}
         <SleepRing
           progress={progress}
           color={ringColor}
