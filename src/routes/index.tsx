@@ -12,6 +12,8 @@ import { listExams, listIAs } from "../lib/api/academics.functions";
 import { getFocusStats } from "../lib/api/focus.functions";
 import { NotificationBanner, type BannerData } from "../components/notification-banner";
 import { SleepNudgeBanner, PushPermissionCard, useSleepNudge } from "../components/sleep-nudge";
+import { SleepOverlay } from "../components/sleep-overlay";
+import { getSettings } from "../lib/api/settings.functions";
 import { getDailyQuote } from "../data/quotes";
 
 export const Route = createFileRoute("/")({
@@ -68,6 +70,20 @@ function Index() {
   const fetchFocusStats = useServerFn(getFocusStats);
   const [banner, setBanner] = useState<BannerData | null>(null);
   const { nudge, dismiss: dismissNudge, permissionPrompt, allowPermission, denyPermission } = useSleepNudge();
+  const fetchSettings = useServerFn(getSettings);
+  const [overlayEnabled, setOverlayEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSettings()
+      .then((res) => {
+        if (cancelled) return;
+        // Default: ON. Disabled only when explicitly set to false.
+        setOverlayEnabled(res.settings.app_blocking !== false);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [fetchSettings]);
 
   // Notification banner check (runs once on mount)
   useEffect(() => {
