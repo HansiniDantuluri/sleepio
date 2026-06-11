@@ -1079,6 +1079,14 @@ function PersistentSleepBanner({
           className="mx-auto flex max-w-md items-center gap-3"
           style={{ minHeight: 36 }}
         >
+          <Link
+            to="/settings"
+            className="shrink-0 inline-flex items-center gap-1"
+            style={{ color: "#fff", opacity: 0.7, textDecoration: "none" }}
+          >
+            <Settings size={16} />
+            <span style={{ fontSize: 11 }}>Settings</span>
+          </Link>
           <p
             className="flex-1 leading-snug"
             style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}
@@ -1102,27 +1110,6 @@ function PersistentSleepBanner({
             {committing ? "Starting…" : "Commit to Sleep"}
           </button>
         </div>
-        <Link
-          to="/settings"
-          aria-hidden
-          tabIndex={-1}
-          style={{
-            position: "absolute",
-            bottom: 2,
-            right: 4,
-            color: "#fff",
-            opacity: 0.25,
-            lineHeight: 0,
-            width: 32,
-            height: 32,
-            padding: 7,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Settings size={18} />
-        </Link>
         <style>{`
           @keyframes sleepBannerPulse {
             0%, 100% { background-color: #DC2626; }
