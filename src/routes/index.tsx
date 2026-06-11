@@ -111,7 +111,18 @@ function Index() {
       await startSleepFn({ data: {} });
       toast.success("Sleep session started. Good night 💙");
       setSleptTonight(true);
-      navigate({ to: "/sleep" });
+      try {
+        navigate({ to: "/sleep" });
+      } catch {
+        if (typeof window !== "undefined") window.location.href = "/sleep";
+      }
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          if (window.location.pathname !== "/sleep") {
+            window.location.href = "/sleep";
+          }
+        }, 300);
+      }
     } catch {
       toast.error("Couldn't start sleep session");
     } finally {
