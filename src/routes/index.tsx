@@ -1015,3 +1015,83 @@ function ActiveBlockRow({
     </motion.div>
   );
 }
+
+function PersistentSleepBanner({
+  goal,
+  streak,
+  sleptTonight,
+  onCommit,
+  committing,
+  now,
+}: {
+  goal: { h: number; m: number; ready: boolean };
+  streak: number;
+  sleptTonight: boolean;
+  onCommit: () => void;
+  committing: boolean;
+  now: Date;
+}) {
+  if (!goal.ready || sleptTonight) return null;
+  const target = new Date(now);
+  target.setHours(goal.h, goal.m, 0, 0);
+  const diffMin = Math.round((now.getTime() - target.getTime()) / 60000);
+  // diffMin negative = before goal; positive = past goal.
+  // Persistent banner shows from sleep_goal_time onward only.
+  const hour = now.getHours();
+  if (hour >= 3 && hour < 12) return null;
+  if (diffMin < 0) return null;
+
+  let message = "It's sleep time — Commit to Sleep";
+  let bg = "rgba(120, 20, 20, 0.96)";
+  let pulse = false;
+  if (diffMin >= 30) {
+    message = `30 min late — Commit to Sleep NOW`;
+    bg = "rgba(140, 20, 20, 0.98)";
+    pulse = true;
+  } else if (diffMin >= 15) {
+    message = `15 min past sleep goal — ${streak} day streak at risk`;
+    bg = "rgba(120, 30, 30, 0.97)";
+  }
+
+  return (
+    <motion.div
+      initial={{ y: -60, opacity: 0 }}
+      animate={pulse ? { y: 0, opacity: [1, 0.65, 1] } : { y: 0, opacity: 1 }}
+      transition={
+        pulse
+          ? { opacity: { duration: 1.4, repeat: Infinity, ease: "easeInOut" }, y: { type: "spring", stiffness: 320, damping: 28 } }
+          : { type: "spring", stiffness: 320, damping: 28 }
+      }
+      className="sticky top-0 z-[70] -mx-4 mb-3 px-3 py-2"
+      style={{
+        background: bg,
+        color: "#fff",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}
+      role="status"
+    >
+      <div className="mx-auto flex max-w-md items-center gap-3">
+        <p className="flex-1 text-sm font-semibold leading-snug" style={{ color: "#fff" }}>
+          {message}
+        </p>
+        <button
+          type="button"
+          onClick={onCommit}
+          disabled={committing}
+          className="shrink-0 rounded-full transition active:scale-[0.98]"
+          style={{
+            background: "#fff",
+            color: "#0f0a28",
+            fontSize: "13px",
+            fontWeight: 700,
+            padding: "8px 14px",
+            minHeight: 36,
+          }}
+        >
+          {committing ? "Starting…" : "Commit to Sleep"}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
