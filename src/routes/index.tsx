@@ -1102,6 +1102,21 @@ function PersistentSleepBanner({
             {committing ? "Starting…" : "Commit to Sleep"}
           </button>
         </div>
+        <Link
+          to="/settings"
+          aria-hidden
+          tabIndex={-1}
+          style={{
+            position: "absolute",
+            bottom: 2,
+            right: 4,
+            color: "#fff",
+            opacity: 0.15,
+            lineHeight: 0,
+          }}
+        >
+          <Settings size={14} />
+        </Link>
         <style>{`
           @keyframes sleepBannerPulse {
             0%, 100% { background-color: #DC2626; }
