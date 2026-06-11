@@ -11,9 +11,10 @@ import { getActiveStudyPlan } from "../lib/api/academics.functions";
 import { listExams, listIAs } from "../lib/api/academics.functions";
 import { getFocusStats } from "../lib/api/focus.functions";
 import { NotificationBanner, type BannerData } from "../components/notification-banner";
-import { SleepNudgeBanner, PushPermissionCard, useSleepNudge } from "../components/sleep-nudge";
+import { SleepNudgeBanner, PushPermissionCard, useSleepNudge, useSleepGoalTime, useSleepStats } from "../components/sleep-nudge";
 import { SleepOverlay } from "../components/sleep-overlay";
 import { getSettings } from "../lib/api/settings.functions";
+import { getActiveSleepSession, getLatestSleepSession, startSleepSession } from "../lib/api/sleep.functions";
 import { getDailyQuote } from "../data/quotes";
 
 export const Route = createFileRoute("/")({
@@ -72,6 +73,51 @@ function Index() {
   const { nudge, dismiss: dismissNudge, permissionPrompt, allowPermission, denyPermission } = useSleepNudge();
   const fetchSettings = useServerFn(getSettings);
   const [overlayEnabled, setOverlayEnabled] = useState<boolean>(true);
+  const sleepGoal = useSleepGoalTime();
+  const sleepStats = useSleepStats();
+  const fetchActiveSleep = useServerFn(getActiveSleepSession);
+  const fetchLatestSleep = useServerFn(getLatestSleepSession);
+  const startSleepFn = useServerFn(startSleepSession);
+  const [sleptTonight, setSleptTonight] = useState(false);
+  const [committingSleep, setCommittingSleep] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const nightK = (d: Date) => {
+      const s = new Date(d.getTime() - 6 * 3600 * 1000);
+      return `${s.getFullYear()}-${s.getMonth() + 1}-${s.getDate()}`;
+    };
+    const check = async () => {
+      try {
+        const [active, latest] = await Promise.all([fetchActiveSleep(), fetchLatestSleep()]);
+        if (cancelled) return;
+        const todayK = nightK(new Date());
+        const aK = active?.session?.start_time ? nightK(new Date(active.session.start_time)) : null;
+        const lK = latest?.session?.start_time ? nightK(new Date(latest.session.start_time)) : null;
+        setSleptTonight(aK === todayK || lK === todayK);
+      } catch {
+        if (!cancelled) setSleptTonight(false);
+      }
+    };
+    void check();
+    const id = window.setInterval(check, 60_000);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [fetchActiveSleep, fetchLatestSleep]);
+
+  const commitToSleep = useCallback(async () => {
+    if (committingSleep) return;
+    setCommittingSleep(true);
+    try {
+      await startSleepFn({ data: {} });
+      toast.success("Sleep session started. Good night 💙");
+      setSleptTonight(true);
+      navigate({ to: "/sleep" });
+    } catch {
+      toast.error("Couldn't start sleep session");
+    } finally {
+      setCommittingSleep(false);
+    }
+  }, [committingSleep, startSleepFn, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -441,6 +487,14 @@ function Index() {
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
       <SleepOverlay enabled={overlayEnabled} />
+      <PersistentSleepBanner
+        goal={sleepGoal}
+        streak={sleepStats.streak}
+        sleptTonight={sleptTonight}
+        onCommit={commitToSleep}
+        committing={committingSleep}
+        now={now}
+      />
       <div className="space-y-6">
         {now.getHours() >= 18 && (
           <motion.p
