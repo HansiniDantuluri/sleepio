@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {
   getLatestSleepSession,
   getSleepNarrative,
+  getSleepSession,
 } from "../lib/api/sleep.functions";
 import { useTheme } from "../components/theme-provider";
 
@@ -24,6 +25,7 @@ function SleepSummaryPage() {
   const { setMode } = useTheme();
   const fetchLatest = useServerFn(getLatestSleepSession);
   const fetchNarrative = useServerFn(getSleepNarrative);
+  const fetchById = useServerFn(getSleepSession);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [timeInBedMin, setTimeInBedMin] = useState(0);
@@ -52,7 +54,11 @@ function SleepSummaryPage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetchLatest();
+        let cachedId: string | null = null;
+        try { cachedId = localStorage.getItem("last_completed_session_id"); } catch {}
+        const r = cachedId
+          ? await fetchById({ data: { id: cachedId } })
+          : await fetchLatest();
         if (r.session) {
           setSessionId(r.session.id);
           if (r.session.start_time && r.session.end_time) {

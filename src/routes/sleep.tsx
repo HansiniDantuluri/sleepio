@@ -44,20 +44,36 @@ function SleepTrackingPage() {
     if (initialized.current) return;
     initialized.current = true;
     (async () => {
+      let cachedId: string | null = null;
+      try { cachedId = localStorage.getItem("active_sleep_session_id"); } catch {}
       try {
         const active = await fetchActive();
-        if (active.session) {
+        if (active.session && (!cachedId || active.session.id === cachedId)) {
           setSessionId(active.session.id);
           setStartedAt(new Date(active.session.start_time));
+          try { localStorage.setItem("active_sleep_session_id", active.session.id); } catch {}
+          return;
+        }
+        if (cachedId) {
+          // server didn't return an active session but we have a cached id;
+          // trust the cache (insert may have just landed) and proceed
+          setSessionId(cachedId);
+          setStartedAt(new Date());
           return;
         }
       } catch {
         /* not signed in or offline */
+        if (cachedId) {
+          setSessionId(cachedId);
+          setStartedAt(new Date());
+          return;
+        }
       }
       try {
         const created = await start({ data: { targetMinutes: 480 } });
         setSessionId(created.id);
         setStartedAt(new Date(created.start_time));
+        try { localStorage.setItem("active_sleep_session_id", created.id); } catch {}
       } catch {
         // local fallback
         setStartedAt(new Date());
@@ -80,7 +96,11 @@ function SleepTrackingPage() {
         } catch {
           /* ignore */
         }
-        try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+        try {
+          localStorage.setItem("sleepio.lastSessionId", sessionId);
+          localStorage.setItem("last_completed_session_id", sessionId);
+          localStorage.removeItem("active_sleep_session_id");
+        } catch {}
         navigate({ to: "/sleep/quality" });
       }
     };
@@ -120,7 +140,11 @@ function SleepTrackingPage() {
                 } catch {
                   /* ignore */
                 }
-                try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+                try {
+                  localStorage.setItem("sleepio.lastSessionId", sessionId);
+                  localStorage.setItem("last_completed_session_id", sessionId);
+                  localStorage.removeItem("active_sleep_session_id");
+                } catch {}
                 navigate({ to: "/sleep/quality" });
               }
             },
@@ -149,7 +173,11 @@ function SleepTrackingPage() {
     } catch {
       /* ignore */
     }
-    try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+    try {
+      localStorage.setItem("sleepio.lastSessionId", sessionId);
+      localStorage.setItem("last_completed_session_id", sessionId);
+      localStorage.removeItem("active_sleep_session_id");
+    } catch {}
     navigate({ to: "/sleep/quality" });
   };
 
