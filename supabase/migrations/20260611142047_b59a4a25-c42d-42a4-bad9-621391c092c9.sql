@@ -1,0 +1,1 @@
+ALTER TABLE public.sleep_sessions ADD COLUMN IF NOT EXISTS sleep_onset_time timestamptz NULL;

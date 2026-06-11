@@ -30,6 +30,8 @@ function SleepQualityPage() {
   const [targetMinutes, setTargetMinutes] = useState<number>(480);
   const [mood, setMood] = useState<number | null>(null);
   const [feltEnough, setFeltEnough] = useState<boolean | null>(null);
+  const [startIso, setStartIso] = useState<string | null>(null);
+  const [onsetTime, setOnsetTime] = useState<string>(""); // "HH:MM"
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -46,6 +48,13 @@ function SleepQualityPage() {
           );
           setActualMinutes(Math.max(0, mins));
         }
+        if (r.session.start_time) {
+          setStartIso(r.session.start_time);
+          const d = new Date(r.session.start_time);
+          const hh = String(d.getHours()).padStart(2, "0");
+          const mm = String(d.getMinutes()).padStart(2, "0");
+          setOnsetTime(`${hh}:${mm}`);
+        }
         if (r.session.target_minutes) setTargetMinutes(r.session.target_minutes);
       })
       .catch(() => {});
@@ -55,6 +64,21 @@ function SleepQualityPage() {
     if (mood === null) return null;
     const ratio = Math.min((actualMinutes || 0) / Math.max(1, targetMinutes), 1);
     return Math.round((ratio * 5 * 0.6 + mood * 0.4) * 10) / 10;
+  };
+
+  const onsetIso = (): string | null => {
+    if (!startIso || !onsetTime) return null;
+    const [hh, mm] = onsetTime.split(":").map(Number);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+    const base = new Date(startIso);
+    const candidate = new Date(base);
+    candidate.setHours(hh, mm, 0, 0);
+    // If user picked a time earlier than start_time on the same calendar day,
+    // assume they meant the next day (e.g. went to bed 23:50, fell asleep 00:20).
+    if (candidate.getTime() < base.getTime()) {
+      candidate.setDate(candidate.getDate() + 1);
+    }
+    return candidate.toISOString();
   };
 
   const submit = async (skip = false) => {
@@ -67,6 +91,7 @@ function SleepQualityPage() {
             mood_score: mood,
             felt_enough: feltEnough,
             quality_score: computeQuality(),
+            sleep_onset_time: onsetIso(),
           },
         });
       } catch {
@@ -131,6 +156,21 @@ function SleepQualityPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="mt-10">
+          <h2 className="font-display text-xl font-semibold">
+            What time did you actually fall asleep?
+          </h2>
+          <input
+            type="time"
+            value={onsetTime}
+            onChange={(e) => setOnsetTime(e.target.value)}
+            className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-lg font-medium text-white [color-scheme:dark] focus:border-white/60 focus:outline-none"
+          />
+          <p className="mt-2 text-xs text-white/55">
+            Optional — helps track actual sleep vs time in bed
+          </p>
         </div>
 
         <div className="mt-auto flex gap-3 pt-12">

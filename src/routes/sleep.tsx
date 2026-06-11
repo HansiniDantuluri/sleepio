@@ -84,8 +84,6 @@ function SleepTrackingPage() {
         navigate({ to: "/sleep/quality" });
       }
     };
-    document.addEventListener("visibilitychange", onVis);
-
     // Capacitor native app-state listener (Android/iOS). The first signal
     // to fire (visibilitychange or appStateChange→active) wins; subsequent
     // navigations are guarded by `fired`.
@@ -96,35 +94,46 @@ function SleepTrackingPage() {
       fired = true;
       await onVis();
     };
-    document.removeEventListener("visibilitychange", onVis);
-    document.addEventListener("visibilitychange", wrappedVis);
 
-    (async () => {
-      try {
-        const specifier = "@capacitor/app";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mod: any = await import(/* @vite-ignore */ specifier).catch(() => null);
-        const App = mod?.App;
-        if (!App?.addListener) return;
-        const handle = await App.addListener("appStateChange", async (state: { isActive: boolean }) => {
-          if (state.isActive && !fired) {
-            fired = true;
-            try {
-              await end({ data: { id: sessionId, status: "interrupted" } });
-            } catch {
-              /* ignore */
-            }
-            try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
-            navigate({ to: "/sleep/quality" });
-          }
-        });
-        removeNative = () => handle?.remove?.();
-      } catch {
-        /* native plugin not available */
-      }
-    })();
+    // Delay registering ALL wake detection listeners by 15 seconds after
+    // mount so the SleepMode permission/background flow doesn't immediately
+    // fire visibilitychange/appStateChange and end the session at ~0 min.
+    const registrationTimer = setTimeout(() => {
+      document.addEventListener("visibilitychange", wrappedVis);
+      (async () => {
+        try {
+          const specifier = "@capacitor/app";
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const cap: any = await import(/* @vite-ignore */ "@capacitor/core").catch(() => null);
+          if (!cap?.Capacitor?.isNativePlatform?.()) return;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mod: any = await import(/* @vite-ignore */ specifier).catch(() => null);
+          const App = mod?.App;
+          if (!App?.addListener) return;
+          const handle = await App.addListener(
+            "appStateChange",
+            async (state: { isActive: boolean }) => {
+              if (state.isActive && !fired) {
+                fired = true;
+                try {
+                  await end({ data: { id: sessionId, status: "interrupted" } });
+                } catch {
+                  /* ignore */
+                }
+                try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+                navigate({ to: "/sleep/quality" });
+              }
+            },
+          );
+          removeNative = () => handle?.remove?.();
+        } catch {
+          /* native plugin not available */
+        }
+      })();
+    }, 15000);
 
     return () => {
+      clearTimeout(registrationTimer);
       document.removeEventListener("visibilitychange", wrappedVis);
       removeNative?.();
     };
@@ -164,6 +173,10 @@ function SleepTrackingPage() {
         >
           <Moon className="h-20 w-20 text-white" strokeWidth={1.2} />
         </motion.div>
+
+        <p className="mt-6 max-w-xs text-center text-sm text-white/60">
+          Tap Good Morning when you wake up to record your sleep
+        </p>
 
         <p className="mt-10 max-w-xs text-center text-xs leading-relaxed text-white/55">
           Sleep time is estimated. Locking your phone pauses phone use — not the clock.

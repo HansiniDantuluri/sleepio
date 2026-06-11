@@ -26,7 +26,9 @@ function SleepSummaryPage() {
   const fetchNarrative = useServerFn(getSleepNarrative);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [actualMin, setActualMin] = useState(0);
+  const [timeInBedMin, setTimeInBedMin] = useState(0);
+  const [sleepMin, setSleepMin] = useState(0);
+  const [hasOnset, setHasOnset] = useState(false);
   const [quality, setQuality] = useState<number | null>(null);
   const [narrative, setNarrative] = useState<string | null>(null);
   const [aiFailed, setAiFailed] = useState(false);
@@ -54,10 +56,19 @@ function SleepSummaryPage() {
         if (r.session) {
           setSessionId(r.session.id);
           if (r.session.start_time && r.session.end_time) {
-            const mins = Math.round(
-              (new Date(r.session.end_time).getTime() - new Date(r.session.start_time).getTime()) / 60000,
-            );
-            setActualMin(Math.max(0, mins));
+            const endMs = new Date(r.session.end_time).getTime();
+            const startMs = new Date(r.session.start_time).getTime();
+            const bedMins = Math.max(0, Math.round((endMs - startMs) / 60000));
+            setTimeInBedMin(bedMins);
+            const onset = r.session.sleep_onset_time;
+            if (onset) {
+              const onsetMs = new Date(onset).getTime();
+              setSleepMin(Math.max(0, Math.round((endMs - onsetMs) / 60000)));
+              setHasOnset(true);
+            } else {
+              setSleepMin(bedMins);
+              setHasOnset(false);
+            }
           }
           setQuality(r.session.quality_score ?? null);
           if (r.session.narrative) {
@@ -78,7 +89,7 @@ function SleepSummaryPage() {
   }, []);
 
   const target = 480;
-  const ratio = Math.min(actualMin / target, 1);
+  const ratio = Math.min(sleepMin / target, 1);
   const R = 80;
   const C = 2 * Math.PI * R;
 
@@ -123,12 +134,22 @@ function SleepSummaryPage() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/55">Sleep</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-white/55">
+                {hasOnset ? "Actual sleep" : "Estimated sleep"}
+              </p>
               <p className="font-display text-3xl font-semibold tabular-nums">
-                {fmtDuration(actualMin)}
+                {fmtDuration(sleepMin)}
               </p>
             </div>
           </div>
+
+          {hasOnset ? (
+            <p className="mt-3 text-sm text-white/55">
+              Time in bed: {fmtDuration(timeInBedMin)}
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-white/55">Estimated sleep time</p>
+          )}
 
           {quality !== null && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">

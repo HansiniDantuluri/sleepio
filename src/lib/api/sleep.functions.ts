@@ -10,12 +10,15 @@ export const startSleepSession = createServerFn({ method: "POST" })
   .inputValidator(z.object({ targetMinutes: z.number().int().min(60).max(900).optional() }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    // close any stale active sessions
+    // close any stale active sessions (only those older than 5 minutes,
+    // so the listener race on a freshly-created session can't auto-close it)
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     await supabase
       .from("sleep_sessions")
       .update({ status: "interrupted", end_time: new Date().toISOString() })
       .eq("user_id", userId)
-      .eq("status", "active");
+      .eq("status", "active")
+      .lt("start_time", fiveMinAgo);
     const { data: row, error } = await supabase
       .from("sleep_sessions")
       .insert({
@@ -68,7 +71,7 @@ export const getLatestSleepSession = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("sleep_sessions")
-      .select("id, start_time, end_time, status, target_minutes, mood_score, felt_enough, quality_score, narrative")
+      .select("id, start_time, end_time, sleep_onset_time, status, target_minutes, mood_score, felt_enough, quality_score, narrative")
       .eq("user_id", userId)
       .not("end_time", "is", null)
       .order("end_time", { ascending: false })
@@ -86,6 +89,7 @@ export const saveSleepQuality = createServerFn({ method: "POST" })
       mood_score: z.number().int().min(1).max(5).nullable().optional(),
       felt_enough: z.boolean().nullable().optional(),
       quality_score: z.number().min(0).max(5).nullable().optional(),
+      sleep_onset_time: z.string().datetime().nullable().optional(),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -96,6 +100,7 @@ export const saveSleepQuality = createServerFn({ method: "POST" })
         mood_score: data.mood_score ?? null,
         felt_enough: data.felt_enough ?? null,
         quality_score: data.quality_score ?? null,
+        sleep_onset_time: data.sleep_onset_time ?? null,
       })
       .eq("id", data.id)
       .eq("user_id", userId);
@@ -110,23 +115,25 @@ export const getSleepNarrative = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: session } = await supabase
       .from("sleep_sessions")
-      .select("start_time, end_time, target_minutes, mood_score")
+      .select("start_time, end_time, sleep_onset_time, target_minutes, mood_score")
       .eq("id", data.id)
       .eq("user_id", userId)
       .maybeSingle();
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { narrative: null as string | null };
+    const onsetIso = session?.sleep_onset_time ?? session?.start_time;
     const actualMin =
-      session?.start_time && session?.end_time
+      onsetIso && session?.end_time
         ? Math.max(
             0,
             Math.round(
               (new Date(session.end_time).getTime() -
-                new Date(session.start_time).getTime()) /
+                new Date(onsetIso).getTime()) /
                 60000,
             ),
           )
         : 0;
+    const usedOnset = Boolean(session?.sleep_onset_time);
     const target = session?.target_minutes ?? 480;
     const mood = session?.mood_score ?? 3;
     try {
@@ -135,7 +142,7 @@ export const getSleepNarrative = createServerFn({ method: "POST" })
       const { text } = await generateText({
         model,
         system: "You are a warm sleep coach for a teenager. Never preachy.",
-        prompt: `The student slept ${actualMin} minutes. Their target is ${target} minutes. Their mood on wake was ${mood}/5. Based on this, write exactly 3 short sentences: 1) A simple observation about their sleep using a relatable comparison (e.g. 'That's like missing an entire REM cycle'). 2) One specific science fact about what happens to the brain or body at this sleep level, explained simply for a teenager. 3) One actionable tip for tonight. Keep it warm, never preachy.`,
+        prompt: `The student ${usedOnset ? "actually slept" : "spent (estimated)"} ${actualMin} minutes${usedOnset ? " from when they fell asleep to when they woke" : " in bed"}. Their target is ${target} minutes. Their mood on wake was ${mood}/5. Based on this, write exactly 3 short sentences: 1) A simple observation about their sleep using a relatable comparison (e.g. 'That's like missing an entire REM cycle'). 2) One specific science fact about what happens to the brain or body at this sleep level, explained simply for a teenager. 3) One actionable tip for tonight. Keep it warm, never preachy.`,
       });
       const narrative = text.trim();
       await supabase.from("sleep_sessions").update({ narrative }).eq("id", data.id).eq("user_id", userId);
