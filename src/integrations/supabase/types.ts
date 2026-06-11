@@ -280,6 +280,7 @@ export type Database = {
           mood_score: number | null
           narrative: string | null
           quality_score: number | null
+          sleep_onset_time: string | null
           start_time: string
           status: string
           target_minutes: number | null
@@ -294,6 +295,7 @@ export type Database = {
           mood_score?: number | null
           narrative?: string | null
           quality_score?: number | null
+          sleep_onset_time?: string | null
           start_time?: string
           status?: string
           target_minutes?: number | null
@@ -308,6 +310,7 @@ export type Database = {
           mood_score?: number | null
           narrative?: string | null
           quality_score?: number | null
+          sleep_onset_time?: string | null
           start_time?: string
           status?: string
           target_minutes?: number | null
