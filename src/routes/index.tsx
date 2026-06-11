@@ -1064,7 +1064,7 @@ function PersistentSleepBanner({
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 9998,
+          zIndex: 9999,
           minHeight: BANNER_HEIGHT,
           background: bg,
           color: "#fff",
