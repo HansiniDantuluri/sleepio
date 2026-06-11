@@ -172,3 +172,11 @@
     letter-spacing: -0.02em;
   }
 }
+
+/* Hide Lovable editor button in production */
+#lovable-badge,
+[data-lovable-badge],
+iframe[src*="lovable"],
+div[class*="lovable-badge"] {
+  display: none !important;
+}
