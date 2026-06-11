@@ -1111,11 +1111,17 @@ function PersistentSleepBanner({
             bottom: 2,
             right: 4,
             color: "#fff",
-            opacity: 0.15,
+            opacity: 0.25,
             lineHeight: 0,
+            width: 32,
+            height: 32,
+            padding: 7,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Settings size={14} />
+          <Settings size={18} />
         </Link>
         <style>{`
           @keyframes sleepBannerPulse {
