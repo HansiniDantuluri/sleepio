@@ -98,6 +98,9 @@ function SleepQualityPage() {
         /* ignore */
       }
     }
+    if (sessionId) {
+      try { localStorage.setItem("last_completed_session_id", sessionId); } catch {}
+    }
     navigate({ to: "/sleep/summary" });
   };
 

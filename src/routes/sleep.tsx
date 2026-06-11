@@ -96,7 +96,11 @@ function SleepTrackingPage() {
         } catch {
           /* ignore */
         }
-        try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+        try {
+          localStorage.setItem("sleepio.lastSessionId", sessionId);
+          localStorage.setItem("last_completed_session_id", sessionId);
+          localStorage.removeItem("active_sleep_session_id");
+        } catch {}
         navigate({ to: "/sleep/quality" });
       }
     };
@@ -136,7 +140,11 @@ function SleepTrackingPage() {
                 } catch {
                   /* ignore */
                 }
-                try { localStorage.setItem("sleepio.lastSessionId", sessionId); } catch {}
+                try {
+                  localStorage.setItem("sleepio.lastSessionId", sessionId);
+                  localStorage.setItem("last_completed_session_id", sessionId);
+                  localStorage.removeItem("active_sleep_session_id");
+                } catch {}
                 navigate({ to: "/sleep/quality" });
               }
             },
