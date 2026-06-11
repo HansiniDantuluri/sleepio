@@ -134,7 +134,7 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-6"
+          className="fixed inset-0 z-[9000] flex items-center justify-center px-6"
           style={{ background: "rgba(0,0,0,0.85)" }}
           role="dialog"
           aria-modal="true"
