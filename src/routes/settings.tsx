@@ -103,8 +103,11 @@ function SettingsPage() {
 
   const handleSleepGoal = (v: string) => {
     setSleepGoalTime(v);
-    try { localStorage.setItem("sleep_goal_time", v); } catch {}
-    void persistProfile({ sleep_goal_time: `${v}:00` });
+    const sleepGoalValue = v;
+    void (async () => {
+      await persistProfile({ sleep_goal_time: `${sleepGoalValue}:00` });
+      try { localStorage.setItem('sleep_goal_time', sleepGoalValue); } catch {}
+    })();
   };
   const handleWake = (v: string) => {
     setWakeTime(v);
