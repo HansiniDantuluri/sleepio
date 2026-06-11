@@ -81,6 +81,21 @@ export const getLatestSleepSession = createServerFn({ method: "GET" })
     return { session: data };
   });
 
+export const getSleepSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
+      .from("sleep_sessions")
+      .select("id, start_time, end_time, sleep_onset_time, status, target_minutes, mood_score, felt_enough, quality_score, narrative")
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { session: row };
+  });
+
 export const saveSleepQuality = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
