@@ -3,27 +3,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Moon } from "lucide-react";
-import { getActiveSleepSession, getLatestSleepSession } from "../lib/api/sleep.functions";
-import { getSettings } from "../lib/api/settings.functions";
+import { toast } from "sonner";
+import {
+  getActiveSleepSession,
+  getLatestSleepSession,
+  startSleepSession,
+} from "../lib/api/sleep.functions";
+import {
+  FORCE_OVERLAY_EVENT,
+  getOnboardingName,
+  formatHM,
+  useSleepGoalTime,
+  useSleepStats,
+} from "./sleep-nudge";
 
 const DISMISS_KEY = "sleep_overlay_dismissed_at";
 const DISMISS_MS = 30 * 60 * 1000;
-
-function parseHHMM(value: string | null | undefined, fallback: [number, number]): [number, number] {
-  if (!value) return fallback;
-  const m = /^(\d{1,2}):(\d{2})/.exec(value);
-  if (!m) return fallback;
-  return [Number(m[1]), Number(m[2])];
-}
-
-function getName(): string {
-  try {
-    const draft = JSON.parse(localStorage.getItem("onboarding_draft") || "{}");
-    return draft.name || "";
-  } catch {
-    return "";
-  }
-}
 
 function nightKey(d: Date) {
   const shifted = new Date(d.getTime() - 6 * 3600 * 1000);
@@ -39,42 +34,40 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
   const navigate = useNavigate();
   const fetchActive = useServerFn(getActiveSleepSession);
   const fetchLatest = useServerFn(getLatestSleepSession);
-  const fetchSettings = useServerFn(getSettings);
+  const startFn = useServerFn(startSleepSession);
+  const goal = useSleepGoalTime();
+  const stats = useSleepStats();
   const [show, setShow] = useState(false);
+  const [lateMin, setLateMin] = useState(0);
+  const [forced, setForced] = useState(false);
+  const [committing, setCommitting] = useState(false);
 
   const check = useCallback(async () => {
     if (!enabled) { setShow(false); return; }
+    if (!goal.ready) return;
     const now = new Date();
     const hour = now.getHours();
     // Hide between 3am and noon — assume they slept.
     if (hour >= 3 && hour < 12) { setShow(false); return; }
 
-    // Read sleep_goal_time: localStorage first, then Supabase profile fallback.
-    let stored = localStorage.getItem("sleep_goal_time");
-    if (!stored) {
-      try {
-        const res = await fetchSettings();
-        const fromDb = res?.profile?.sleep_goal_time ?? null;
-        if (fromDb) {
-          stored = fromDb.slice(0, 5);
-          localStorage.setItem("sleep_goal_time", stored);
-        }
-      } catch {
-        /* offline/unauth — fall through to default */
-      }
-    }
-    const [sh, sm] = parseHHMM(stored, [22, 0]);
     const target = new Date(now);
-    target.setHours(sh, sm, 0, 0);
-    // If goal is e.g. 22:00 and it's already 1am, target was yesterday — still "passed".
+    target.setHours(goal.h, goal.m, 0, 0);
     const passed = now.getTime() >= target.getTime() || hour < 3;
     if (!passed) { setShow(false); return; }
 
-    // Respect 30-min dismiss
-    const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || "0");
-    if (dismissedAt && Date.now() - dismissedAt < DISMISS_MS) {
-      setShow(false);
-      return;
+    const minutesLate = Math.max(
+      0,
+      Math.round((now.getTime() - target.getTime()) / 60000),
+    );
+    setLateMin(minutesLate);
+
+    // Dismiss only honored when under 15 min late (and not in forced mode)
+    if (!forced && minutesLate < 15) {
+      const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || "0");
+      if (dismissedAt && Date.now() - dismissedAt < DISMISS_MS) {
+        setShow(false);
+        return;
+      }
     }
 
     // Skip if a sleep session has been started tonight
@@ -90,7 +83,7 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
       /* unauth/offline — still show */
     }
     setShow(true);
-  }, [enabled, fetchActive, fetchLatest, fetchSettings]);
+  }, [enabled, fetchActive, fetchLatest, goal, forced]);
 
   useEffect(() => {
     void check();
@@ -98,12 +91,47 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
     return () => window.clearInterval(id);
   }, [check]);
 
+  // Stage-6 force trigger from sleep-nudge.
+  useEffect(() => {
+    const handler = () => {
+      setForced(true);
+      void check();
+    };
+    window.addEventListener(FORCE_OVERLAY_EVENT, handler);
+    return () => window.removeEventListener(FORCE_OVERLAY_EVENT, handler);
+  }, [check]);
+
   const dismiss30 = () => {
+    if (lateMin >= 15) return; // not allowed
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
     setShow(false);
   };
 
-  const name = getName();
+  const commit = async () => {
+    if (committing) return;
+    setCommitting(true);
+    try {
+      await startFn({ data: {} });
+      toast.success("Sleep session started. Good night 💙");
+      setShow(false);
+      setForced(false);
+      navigate({ to: "/sleep" });
+    } catch {
+      toast.error("Couldn't start sleep session");
+    } finally {
+      setCommitting(false);
+    }
+  };
+
+  const name = getOnboardingName();
+  const heading =
+    lateMin >= 30
+      ? `You've lost ${lateMin} mins of sleep tonight`
+      : lateMin >= 15
+        ? `You're ${lateMin} mins past your sleep goal`
+        : `It's sleep time${name ? `, ${name}` : ""}`;
+  const canDismiss = lateMin < 15 && !forced && lateMin < 45;
+  const noDismissAtAll = lateMin >= 45 || forced;
 
   return (
     <AnimatePresence>
@@ -126,14 +154,18 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
               className="font-display tracking-tight text-white"
               style={{ fontSize: "28px", fontWeight: 600, lineHeight: 1.2 }}
             >
-              It's sleep time{name ? `, ${name}` : ""}
+              {heading}
             </h2>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
-              Put your phone down and let your brain recover.
+              Sleep debt this week: {formatHM(stats.debtMin)}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Current streak: {stats.streak} day{stats.streak === 1 ? "" : "s"} — don't break it
             </p>
             <button
               type="button"
-              onClick={() => navigate({ to: "/sleep" })}
+              onClick={commit}
+              disabled={committing}
               className="mt-10 w-full rounded-full border-0 shadow-2xl transition active:scale-[0.98]"
               style={{
                 background: "#ffffff",
@@ -147,22 +179,24 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
                 letterSpacing: "0.01em",
               }}
             >
-              Sleep Now
+              {committing ? "Starting…" : "Commit to Sleep"}
             </button>
-            <button
-              type="button"
-              onClick={dismiss30}
-              className="mt-5 underline-offset-4 hover:underline"
-              style={{
-                background: "transparent",
-                color: "rgba(255,255,255,0.7)",
-                fontSize: "13px",
-                minHeight: 44,
-                padding: "10px 16px",
-              }}
-            >
-              Dismiss for 30 min
-            </button>
+            {canDismiss && !noDismissAtAll && (
+              <button
+                type="button"
+                onClick={dismiss30}
+                className="mt-5 underline-offset-4 hover:underline"
+                style={{
+                  background: "transparent",
+                  color: "rgba(255,255,255,0.7)",
+                  fontSize: "13px",
+                  minHeight: 44,
+                  padding: "10px 16px",
+                }}
+              >
+                Dismiss for 30 min
+              </button>
+            )}
           </div>
         </motion.div>
       )}
