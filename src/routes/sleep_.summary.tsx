@@ -82,7 +82,17 @@ function SleepSummaryPage() {
   const R = 80;
   const C = 2 * Math.PI * R;
 
-  const startMyDay = () => {
+  const startMyDay = async () => {
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { registerPlugin } = await import('@capacitor/core');
+        const SleepMode = registerPlugin<{ deactivate: () => Promise<void> }>('SleepMode');
+        await SleepMode.deactivate();
+      }
+    } catch (e) {
+      console.log('SleepMode plugin not available:', e);
+    }
     setMode("auto");
     try { localStorage.setItem("sleepio.scheduleRebuildAt", String(Date.now())); } catch {}
     navigate({ to: "/" });
