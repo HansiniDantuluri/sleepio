@@ -1037,8 +1037,6 @@ function PersistentSleepBanner({
   const diffMin = Math.round((now.getTime() - target.getTime()) / 60000);
   // diffMin negative = before goal; positive = past goal.
   // Persistent banner shows from sleep_goal_time onward only.
-  const hour = now.getHours();
-  if (hour >= 3 && hour < 12) return null;
   if (diffMin < 0) return null;
 
   let message = "It's sleep time — Commit to Sleep";
