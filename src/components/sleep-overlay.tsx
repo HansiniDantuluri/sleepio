@@ -46,13 +46,9 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
     if (!enabled) { setShow(false); return; }
     if (!goal.ready) return;
     const now = new Date();
-    const hour = now.getHours();
-    // Hide between 3am and noon — assume they slept.
-    if (hour >= 3 && hour < 12) { setShow(false); return; }
-
     const target = new Date(now);
     target.setHours(goal.h, goal.m, 0, 0);
-    const passed = now.getTime() >= target.getTime() || hour < 3;
+    const passed = now.getTime() >= target.getTime();
     if (!passed) { setShow(false); return; }
 
     const minutesLate = Math.max(
