@@ -115,6 +115,17 @@ function Index() {
     } catch (e) {
       console.error("Sleep session error:", e);
     }
+    // Activate native app blocking on Android
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { registerPlugin } = await import('@capacitor/core');
+        const SleepMode = registerPlugin<{ activate: () => Promise<void> }>('SleepMode');
+        await SleepMode.activate();
+      }
+    } catch (e) {
+      console.log('SleepMode plugin not available:', e);
+    }
     if (typeof window !== "undefined") {
       window.location.href = "/sleep";
     }
