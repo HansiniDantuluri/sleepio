@@ -105,30 +105,20 @@ function Index() {
   }, [fetchActiveSleep, fetchLatestSleep]);
 
   const commitToSleep = useCallback(async () => {
-    if (committingSleep) return;
     setCommittingSleep(true);
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => setCommittingSleep(false), 3000);
+    }
     try {
       await startSleepFn({ data: {} });
-      toast.success("Sleep session started. Good night 💙");
       setSleptTonight(true);
-      try {
-        navigate({ to: "/sleep" });
-      } catch {
-        if (typeof window !== "undefined") window.location.href = "/sleep";
-      }
-      if (typeof window !== "undefined") {
-        window.setTimeout(() => {
-          if (window.location.pathname !== "/sleep") {
-            window.location.href = "/sleep";
-          }
-        }, 300);
-      }
-    } catch {
-      toast.error("Couldn't start sleep session");
-    } finally {
-      setCommittingSleep(false);
+    } catch (e) {
+      console.error("Sleep session error:", e);
     }
-  }, [committingSleep, startSleepFn, navigate]);
+    if (typeof window !== "undefined") {
+      window.location.href = "/sleep";
+    }
+  }, [startSleepFn]);
 
   useEffect(() => {
     let cancelled = false;
