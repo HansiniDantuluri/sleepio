@@ -104,19 +104,16 @@ export function SleepOverlay({ enabled }: { enabled: boolean }) {
   };
 
   const commit = async () => {
-    if (committing) return;
     setCommitting(true);
+    setTimeout(() => setCommitting(false), 3000);
     try {
       await startFn({ data: {} });
-      toast.success("Sleep session started. Good night 💙");
       setShow(false);
       setForced(false);
-      navigate({ to: "/sleep" });
-    } catch {
-      toast.error("Couldn't start sleep session");
-    } finally {
-      setCommitting(false);
+    } catch (e) {
+      console.error("Sleep session error:", e);
     }
+    window.location.href = "/sleep";
   };
 
   const name = getOnboardingName();
