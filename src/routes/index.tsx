@@ -1079,14 +1079,15 @@ function PersistentSleepBanner({
           className="mx-auto flex max-w-md items-center gap-3"
           style={{ minHeight: 36 }}
         >
-          <Link
-            to="/settings"
+          <button
+            type="button"
+            onClick={() => { window.location.href = '/settings'; }}
             className="shrink-0 inline-flex items-center gap-1"
-            style={{ color: "#fff", opacity: 0.7, textDecoration: "none" }}
+            style={{ color: "#fff", opacity: 0.7, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
           >
             <Settings size={16} />
             <span style={{ fontSize: 11 }}>Settings</span>
-          </Link>
+          </button>
           <p
             className="flex-1 leading-snug"
             style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}
