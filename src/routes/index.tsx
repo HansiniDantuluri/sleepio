@@ -487,15 +487,24 @@ function Index() {
       <NotificationBanner banner={banner} onDismiss={() => setBanner(null)} />
       <SleepNudgeBanner nudge={nudge} onDismiss={dismissNudge} />
       <SleepOverlay enabled={overlayEnabled} />
-      <PersistentSleepBanner
-        goal={sleepGoal}
-        streak={sleepStats.streak}
-        sleptTonight={sleptTonight}
-        onCommit={commitToSleep}
-        committing={committingSleep}
-        now={now}
-      />
-      <div className="space-y-6">
+      {(() => {
+        const show = shouldShowSleepBanner(sleepGoal, sleptTonight, now);
+        return (
+          <>
+            <PersistentSleepBanner
+              goal={sleepGoal}
+              streak={sleepStats.streak}
+              sleptTonight={sleptTonight}
+              onCommit={commitToSleep}
+              committing={committingSleep}
+              now={now}
+            />
+            <div className="space-y-6" style={show ? { paddingTop: 64 } : undefined}>
+      {/* dashboard content below */}
+          </>
+        );
+      })()}
+      <div style={{ display: "none" }}>
         {now.getHours() >= 18 && (
           <motion.p
             initial={{ opacity: 0 }}
