@@ -86,82 +86,10 @@ function SleepTrackingPage() {
     return () => clearInterval(id);
   }, []);
 
-  // visibilitychange wake detection
-  useEffect(() => {
-    if (!sessionId) return;
-    const onVis = async () => {
-      if (!document.hidden) {
-        try {
-          await end({ data: { id: sessionId, status: "interrupted" } });
-        } catch {
-          /* ignore */
-        }
-        try {
-          localStorage.setItem("sleepio.lastSessionId", sessionId);
-          localStorage.setItem("last_completed_session_id", sessionId);
-          localStorage.removeItem("active_sleep_session_id");
-        } catch {}
-        navigate({ to: "/sleep/quality" });
-      }
-    };
-    // Capacitor native app-state listener (Android/iOS). The first signal
-    // to fire (visibilitychange or appStateChange→active) wins; subsequent
-    // navigations are guarded by `fired`.
-    let fired = false;
-    let removeNative: (() => void) | null = null;
-    const wrappedVis = async () => {
-      if (fired) return;
-      fired = true;
-      await onVis();
-    };
-
-    // Delay registering ALL wake detection listeners by 15 seconds after
-    // mount so the SleepMode permission/background flow doesn't immediately
-    // fire visibilitychange/appStateChange and end the session at ~0 min.
-    const registrationTimer = setTimeout(() => {
-      document.addEventListener("visibilitychange", wrappedVis);
-      (async () => {
-        try {
-          const specifier = "@capacitor/app";
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const cap: any = await import(/* @vite-ignore */ "@capacitor/core").catch(() => null);
-          if (!cap?.Capacitor?.isNativePlatform?.()) return;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const mod: any = await import(/* @vite-ignore */ specifier).catch(() => null);
-          const App = mod?.App;
-          if (!App?.addListener) return;
-          const handle = await App.addListener(
-            "appStateChange",
-            async (state: { isActive: boolean }) => {
-              if (state.isActive && !fired) {
-                fired = true;
-                try {
-                  await end({ data: { id: sessionId, status: "interrupted" } });
-                } catch {
-                  /* ignore */
-                }
-                try {
-                  localStorage.setItem("sleepio.lastSessionId", sessionId);
-                  localStorage.setItem("last_completed_session_id", sessionId);
-                  localStorage.removeItem("active_sleep_session_id");
-                } catch {}
-                navigate({ to: "/sleep/quality" });
-              }
-            },
-          );
-          removeNative = () => handle?.remove?.();
-        } catch {
-          /* native plugin not available */
-        }
-      })();
-    }, 15000);
-
-    return () => {
-      clearTimeout(registrationTimer);
-      document.removeEventListener("visibilitychange", wrappedVis);
-      removeNative?.();
-    };
-  }, [sessionId, end, navigate]);
+  // Wake detection is intentionally disabled: only the Good Morning button
+  // (handleWake) navigates away from /sleep. The screen stays put through
+  // backgrounding, screen-off, and auth token expiry. Silent refresh runs
+  // from the root.
 
   const handleWake = async () => {
     if (!sessionId) {
