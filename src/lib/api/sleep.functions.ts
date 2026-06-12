@@ -10,6 +10,16 @@ export const startSleepSession = createServerFn({ method: "POST" })
   .inputValidator(z.object({ targetMinutes: z.number().int().min(60).max(900).optional() }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    // Refresh auth session before inserting. Proceed regardless of result,
+    // but log any failure so we can diagnose token expiry issues.
+    try {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn("[startSleepSession] refreshSession failed:", refreshError.message);
+      }
+    } catch (e) {
+      console.warn("[startSleepSession] refreshSession threw:", e);
+    }
     // close any stale active sessions (only those older than 5 minutes,
     // so the listener race on a freshly-created session can't auto-close it)
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -19,18 +29,29 @@ export const startSleepSession = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .eq("status", "active")
       .lt("start_time", fiveMinAgo);
-    const { data: row, error } = await supabase
-      .from("sleep_sessions")
-      .insert({
-        user_id: userId,
-        start_time: new Date().toISOString(),
-        status: "active",
-        target_minutes: data.targetMinutes ?? 480,
-      })
-      .select("id, start_time, target_minutes")
-      .single();
-    if (error) throw new Error(error.message);
-    return row;
+    const doInsert = async () =>
+      supabase
+        .from("sleep_sessions")
+        .insert({
+          user_id: userId,
+          start_time: new Date().toISOString(),
+          status: "active",
+          target_minutes: data.targetMinutes ?? 480,
+        })
+        .select("id, start_time, target_minutes")
+        .single();
+    let { data: row, error } = await doInsert();
+    if (error) {
+      console.warn("[startSleepSession] first insert failed, retrying:", error.message);
+      await new Promise((r) => setTimeout(r, 2000));
+      const retry = await doInsert();
+      row = retry.data;
+      error = retry.error;
+      if (error) {
+        throw new Error(`Could not save sleep session: ${error.message}`);
+      }
+    }
+    return row!;
   });
 
 export const endSleepSession = createServerFn({ method: "POST" })
