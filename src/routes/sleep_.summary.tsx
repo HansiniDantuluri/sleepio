@@ -64,12 +64,22 @@ function SleepSummaryPage() {
           if (r.session.start_time && r.session.end_time) {
             const endMs = new Date(r.session.end_time).getTime();
             const startMs = new Date(r.session.start_time).getTime();
-            const bedMins = Math.max(0, Math.round((endMs - startMs) / 60000));
+            let bedMins = Math.max(0, Math.round((endMs - startMs) / 60000));
+            if (bedMins > 1440) {
+              console.warn("Time in bed exceeds 24h, capping", {
+                start_time: r.session.start_time,
+                end_time: r.session.end_time,
+                bedMins,
+              });
+              bedMins = 1440;
+            }
             setTimeInBedMin(bedMins);
             const onset = r.session.sleep_onset_time;
             if (onset) {
               const onsetMs = new Date(onset).getTime();
-              setSleepMin(Math.max(0, Math.round((endMs - onsetMs) / 60000)));
+              let sMins = Math.max(0, Math.round((endMs - onsetMs) / 60000));
+              if (sMins > 1440) sMins = 1440;
+              setSleepMin(sMins);
               setHasOnset(true);
             } else {
               setSleepMin(bedMins);
