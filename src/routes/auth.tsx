@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { completeOnboarding } from "../lib/api/onboarding.functions";
 
 export const Route = createFileRoute("/auth")({
@@ -114,24 +113,6 @@ function AuthPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result && "error" in result && result.error) {
-        const e = result.error as unknown;
-        setError(e instanceof Error ? e.message : typeof e === "string" ? e : "Google sign-in failed");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-10 pt-12">
@@ -147,18 +128,6 @@ function AuthPage() {
               ? "Save your plan and sync across devices."
               : "Sign in to pick up where you left off."}
           </p>
-        </div>
-
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary/40 disabled:opacity-50"
-        >
-          <GoogleIcon /> Continue with Google
-        </button>
-
-        <div className="my-2 flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> or <div className="h-px flex-1 bg-border" />
         </div>
 
         <form onSubmit={handleEmail} className="mt-4 space-y-3">
