@@ -17,7 +17,7 @@ import { getSettings } from "../lib/api/settings.functions";
 import { getActiveSleepSession, getLatestSleepSession, startSleepSession } from "../lib/api/sleep.functions";
 import { getDailyQuote } from "../data/quotes";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "SleepIO — Sleep smarter, study sharper" },
