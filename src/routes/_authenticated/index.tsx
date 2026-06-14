@@ -4,20 +4,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Lock, ChevronRight, BookOpen, Coffee, Moon, Sparkles, Clock, X, AlertTriangle, Loader2, Settings } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell } from "../components/app-shell";
-import { getCoachMessage } from "../lib/api/coach.functions";
-import { getActiveSchedule, saveActiveSchedule } from "../lib/api/schedule.functions";
-import { getActiveStudyPlan } from "../lib/api/academics.functions";
-import { listExams, listIAs } from "../lib/api/academics.functions";
-import { getFocusStats } from "../lib/api/focus.functions";
-import { NotificationBanner, type BannerData } from "../components/notification-banner";
-import { SleepNudgeBanner, PushPermissionCard, useSleepNudge, useSleepGoalTime, useSleepStats } from "../components/sleep-nudge";
-import { SleepOverlay } from "../components/sleep-overlay";
-import { getSettings } from "../lib/api/settings.functions";
-import { getActiveSleepSession, getLatestSleepSession, startSleepSession } from "../lib/api/sleep.functions";
-import { getDailyQuote } from "../data/quotes";
+import { AppShell } from "../../components/app-shell";
+import { getCoachMessage } from "../../lib/api/coach.functions";
+import { getActiveSchedule, saveActiveSchedule } from "../../lib/api/schedule.functions";
+import { getActiveStudyPlan } from "../../lib/api/academics.functions";
+import { listExams, listIAs } from "../../lib/api/academics.functions";
+import { getFocusStats } from "../../lib/api/focus.functions";
+import { NotificationBanner, type BannerData } from "../../components/notification-banner";
+import { SleepNudgeBanner, PushPermissionCard, useSleepNudge, useSleepGoalTime, useSleepStats } from "../../components/sleep-nudge";
+import { SleepOverlay } from "../../components/sleep-overlay";
+import { getSettings } from "../../lib/api/settings.functions";
+import { getActiveSleepSession, getLatestSleepSession, startSleepSession } from "../../lib/api/sleep.functions";
+import { getDailyQuote } from "../../data/quotes";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "SleepIO — Sleep smarter, study sharper" },
