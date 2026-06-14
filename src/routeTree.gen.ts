@@ -18,6 +18,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as FocusRouteImport } from './routes/focus'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcademicsRouteImport } from './routes/academics'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as WindDownStoryRouteImport } from './routes/wind-down_.story'
 import { Route as WindDownMusicRouteImport } from './routes/wind-down_.music'
@@ -70,10 +71,14 @@ const AcademicsRoute = AcademicsRouteImport.update({
   path: '/academics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/_authenticated/',
-  path: '/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const WindDownStoryRoute = WindDownStoryRouteImport.update({
   id: '/wind-down_/story',
@@ -102,6 +107,7 @@ const SleepQualityRoute = SleepQualityRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthenticatedIndexRoute
   '/academics': typeof AcademicsRoute
   '/auth': typeof AuthRoute
   '/focus': typeof FocusRoute
@@ -116,7 +122,6 @@ export interface FileRoutesByFullPath {
   '/wind-down/breathing': typeof WindDownBreathingRoute
   '/wind-down/music': typeof WindDownMusicRoute
   '/wind-down/story': typeof WindDownStoryRoute
-  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesByTo {
   '/academics': typeof AcademicsRoute
@@ -137,6 +142,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/academics': typeof AcademicsRoute
   '/auth': typeof AuthRoute
   '/focus': typeof FocusRoute
@@ -156,6 +162,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/academics'
     | '/auth'
     | '/focus'
@@ -170,7 +177,6 @@ export interface FileRouteTypes {
     | '/wind-down/breathing'
     | '/wind-down/music'
     | '/wind-down/story'
-    | '/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/academics'
@@ -190,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
   id:
     | '__root__'
+    | '/_authenticated'
     | '/academics'
     | '/auth'
     | '/focus'
@@ -208,6 +215,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AcademicsRoute: typeof AcademicsRoute
   AuthRoute: typeof AuthRoute
   FocusRoute: typeof FocusRoute
@@ -222,7 +230,6 @@ export interface RootRouteChildren {
   WindDownBreathingRoute: typeof WindDownBreathingRoute
   WindDownMusicRoute: typeof WindDownMusicRoute
   WindDownStoryRoute: typeof WindDownStoryRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,12 +297,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademicsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/wind-down_/story': {
       id: '/wind-down_/story'
@@ -335,7 +349,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AcademicsRoute: AcademicsRoute,
   AuthRoute: AuthRoute,
   FocusRoute: FocusRoute,
@@ -350,7 +376,6 @@ const rootRouteChildren: RootRouteChildren = {
   WindDownBreathingRoute: WindDownBreathingRoute,
   WindDownMusicRoute: WindDownMusicRoute,
   WindDownStoryRoute: WindDownStoryRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
